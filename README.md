@@ -1,4 +1,50 @@
-# Kiyanza chatbot — préparation des données (étape 1)
+# Kiyanza chatbot — Assistant IA marketing (mode « Poser une question »)
+
+Chatbot combinant RAG (documents de cadrage) + text-to-SQL (données de
+campagnes) + LLM local gratuit (Ollama), pour le projet Kiyanza.
+
+## Démarrage rapide (cloner et lancer depuis zéro)
+
+Ce dépôt ne contient **ni** l'environnement virtuel (`venv/`) **ni** tes
+identifiants de base de données (`.env`) **ni** la base vectorielle
+générée (`output/chroma_db/`) — chacun doit les recréer localement après
+avoir cloné. Voici l'enchaînement complet, dans l'ordre :
+
+```bash
+# 1. Cloner le dépôt
+git clone https://github.com/Liyanza/Chatbot.git kiyanza-chatbot
+cd kiyanza-chatbot
+
+# 2. Créer et activer l'environnement virtuel
+python -m venv venv
+venv\Scripts\Activate.ps1        # Windows PowerShell
+# venv\Scripts\activate.bat      # Windows cmd
+# source venv/bin/activate       # macOS / Linux
+
+# 3. Installer les dépendances
+pip install -r requirements.txt
+
+# 4. Configurer PostgreSQL
+copy .env.example .env           # Windows — cp sur macOS/Linux
+# puis remplir .env avec tes vrais identifiants PostgreSQL
+
+# 5. Installer Ollama et un modèle local (voir section 9 plus bas)
+ollama pull llama3.2
+
+# 6. Lancer les scripts de préparation des données, dans l'ordre
+python scripts/01_extract_and_chunk_text.py
+python scripts/02_load_excel_to_postgres.py
+python scripts/03_generate_embeddings.py
+
+# 7. Lancer le chatbot
+python scripts/06_chatbot.py
+```
+
+Les fichiers `data/*.pdf` et `data/*.xlsx` sont déjà inclus dans le dépôt
+(pas besoin de les recopier manuellement). Le détail de chaque étape,
+avec les explications et les points d'attention, est ci-dessous.
+
+---
 
 ## 1. Ouvrir le projet dans VS Code
 
@@ -75,7 +121,7 @@ Tu peux vérifier avec `psql` ou pgAdmin :
 SELECT company, industry, roas FROM campaigns LIMIT 5;
 ```
 
-## 7. Générer les embeddings et construire la base vectorielle
+## 8. Générer les embeddings et construire la base vectorielle
 
 ```bash
 python scripts/03_generate_embeddings.py
@@ -107,13 +153,17 @@ présentation systématique de la fonctionnalité Kiyanza pertinente, etc.
 ## 9. Installer et tester Ollama (LLM local et gratuit)
 
 1. Télécharge et installe Ollama : https://ollama.com/download
-2. Télécharge un modèle (Mistral, bon niveau en français) :
+2. Télécharge un modèle léger, adapté à une machine sans GPU dédié :
    ```bash
-   ollama pull mistral
+   ollama pull llama3.2
    ```
+   (Le nom du modèle utilisé par le projet est configuré dans
+   `scripts/llm_client.py`, variable `MODEL_NAME`. Si ta machine reste
+   lente, essaie `ollama pull llama3.2:1b`, plus léger, et mets à jour
+   `MODEL_NAME` en conséquence.)
 3. Teste-le en ligne de commande :
    ```bash
-   ollama run mistral
+   ollama run llama3.2
    ```
    Pose une question, vérifie que ça répond, puis `/bye` pour quitter.
 
