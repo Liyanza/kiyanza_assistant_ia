@@ -1,0 +1,338 @@
+[
+  {
+    "section": "CONTEXTE",
+    "text": "............................................................................................................................................. 3",
+    "source": "kiyanza_cadrage.pdf",
+    "document": "Document de cadrage",
+    "chunk_id": "chunk_0000"
+  },
+  {
+    "section": "PROBLEMATIQUE IDENTIFIEE",
+    "text": "......................................................................................................... 4",
+    "source": "kiyanza_cadrage.pdf",
+    "document": "Document de cadrage",
+    "chunk_id": "chunk_0001"
+  },
+  {
+    "section": "PRESENTATION DE LA SOLUTION",
+    "text": ".................................................................................................. 5",
+    "source": "kiyanza_cadrage.pdf",
+    "document": "Document de cadrage",
+    "chunk_id": "chunk_0002"
+  },
+  {
+    "section": "OBJECTIFS",
+    "text": "............................................................................................................................................. 6 \n1. Objectif général ............................................................................................................................ 6 \n2. Objectifs spécifiques .................................................................................................................... 6",
+    "source": "kiyanza_cadrage.pdf",
+    "document": "Document de cadrage",
+    "chunk_id": "chunk_0003"
+  },
+  {
+    "section": "FONCTIONNALITES",
+    "text": "............................................................................................................................. 7 \n1. Assistant IA marketing intelligent.................................................................................................... 7 \n2. Analyse des performances marketing .............................................................................................. 8 \n3. Génération de recommandations marketing personnalisées ......................................................... 9 \n4. QR Code intelligent pour suivre le zoning et la distribution ........................................................ 9 \n5. Monitoring intelligent des diffusions radio ................................................................................ 11 \n6. Tableau de bord administratif et gestion des équipes..................................................................... 12",
+    "source": "kiyanza_cadrage.pdf",
+    "document": "Document de cadrage",
+    "chunk_id": "chunk_0004"
+  },
+  {
+    "section": "USER PERSONAS",
+    "text": "................................................................................................................................ 13 \nPersona 1 : Léane Yvanna, Directrice Marketing .............................................................................. 13 \nPersona 2: Nna Aristide, Chef Segment Client Retail ....................................................................... 14 \nPersona 3 : Ddjunet Dorcas, Responsable Communication Digitale ................................................. 14 \nETUDE DE L’EXISTANT .................................................................................................................... 16 \nIntroduction ........................................................................................................................................ 16 \n1. HubSpot ......................................................................................................................................... 16 \n2. Hootsuite ........................................................................................................................................ 17 \n3. Meta Business Suite ....................................................................................................................... 17 \n4. Pecan AI ......................................................................................................................................... 18 \n5. Salesforce ....................................................................................................................................... 18",
+    "source": "kiyanza_cadrage.pdf",
+    "document": "Document de cadrage",
+    "chunk_id": "chunk_0005"
+  },
+  {
+    "section": "CONCLUSION",
+    "text": "...................................................................................................................................... 20",
+    "source": "kiyanza_cadrage.pdf",
+    "document": "Document de cadrage",
+    "chunk_id": "chunk_0006"
+  },
+  {
+    "section": "CONTEXTE",
+    "text": "La transformation numérique a profondément modifié la manière dont les \nentreprises conçoivent, exécutent et évaluent leurs stratégies marketing. Avec \nl'essor des réseaux sociaux, des plateformes numériques et des outils d'analyse, les \norganisations disposent aujourd'hui d'un volume croissant de données leur \npermettant de mieux comprendre leurs clients et d'orienter leurs décisions. \nParallèlement, les progrès de l'intelligence artificielle ouvrent de nouvelles  \nperspectives pour les métiers du marketing. Les entreprises peuvent désormais \nautomatiser certaines tâches, analyser rapidement de grandes quantités de données \net bénéficier d'outils d'aide à la décision afin d'améliorer leur efficacité et leur \ncompétitivité. \nDans ce contexte, les organisations recherchent des solutions innovantes capables \nde simplifier leurs processus marketing et de renforcer leurs performances dans un \nenvironnement de plus en plus concurrentiel.",
+    "source": "kiyanza_cadrage.pdf",
+    "document": "Document de cadrage",
+    "chunk_id": "chunk_0007"
+  },
+  {
+    "section": "PROBLEMATIQUE IDENTIFIEE",
+    "text": "Selon Epitomise (2025), les entreprises gaspillent jusqu'à 60 % de leur budget \nmarketing en raison d'un manque de planification stratégique, d'un mauvais ciblage \net de l'utilisation d'outils inadaptés. \nEn Afrique et dans les autres marchés en développement, de nombreuses \nentreprises ne disposent ni des ressources financières nécessaires pour constituer \nune équipe marketing complète, ni de solutions adaptées à leurs réalités. Elles \nrencontrent des difficultés à planifier leurs campagnes, analyser efficacement leurs \ndonnées, identifier les opport unités d'amélioration et évaluer l'impact potentiel \nd'une stratégie avant d'y investir. \nPar ailleurs, les informations nécessaires à la prise de décision sont souvent \ndispersées entre plusieurs outils, ce qui oblige les équipes à consacrer un temps \nimportant à la collecte, au traitement et à la production de rapports. Cette \nfragmentation ralentit les décisions  et limite leur capacité à optimiser leurs \ninvestissements marketing. \nCes contraintes entraînent une mauvaise allocation des ressources, des dépenses \nmarketing peu efficaces et une difficulté à transformer les données disponibles en \ndécisions marketing stratégiques créatrices de valeur.",
+    "source": "kiyanza_cadrage.pdf",
+    "document": "Document de cadrage",
+    "chunk_id": "chunk_0008"
+  },
+  {
+    "section": "PRESENTATION DE LA SOLUTION",
+    "text": "Liyanza est un assistant marketing intelligent conçu pour a ccompagner les \nentreprises dans la planification, l'exécution et l'optimisation de leurs activités \nmarketing grâce à l'intelligence artificielle. \nLa plateforme centralise les principales tâches du processus marketing au sein d'un \nenvironnement unique. Elle permet de :  \n➢ Concevoir et simuler des campagnes  \n➢ Analyser et suivre les performances \n➢ Générer des recommandations \n➢ Monitorer la diffusion des spots publicitaires à la radio \n➢ Générer des QR Codes uniques pour analyser le zoning et suivre la \ndistribution. \n➢ Suivre l’installation des panneaux publicitaires grâce à des photos \ngéolocalisées. \n➢ Produire automatiquement des rapports \n \nPensée pour les réalités des entreprises africaines, la solution met l'accent sur la \nsimplicité d'utilisation, la rapidité d'exécution et l'accessibilité, afin de permettre \naux entreprises de tirer pleinement parti de leurs données po ur développer des \nstratégies marketing plus performantes et obtenir un meilleur retour sur \ninvestissement.",
+    "source": "kiyanza_cadrage.pdf",
+    "document": "Document de cadrage",
+    "chunk_id": "chunk_0009"
+  },
+  {
+    "section": "OBJECTIFS",
+    "text": "1. Objectif général \nPermettre aux entreprises des marchés en d éveloppement d’optimiser leurs \nstratégies marketing grâce à une plateforme intelligente qui facilite la \nplanification, l’exécution et l'optimisation des actions marketing. \n2. Objectifs spécifiques \n• Optimiser le temps consacré aux activités marketing en aidant les \nentreprises à structurer leurs campagnes et à identifier rapidement les \nactions prioritaires. \n• Faciliter la prise de décision marketing grâce à des analyses et \nrecommandations intelligentes basées sur les données disponibles. \n• Permettre d’anticiper les résultats des campagnes grâce à la simulation de \nleurs performances avant leur lancement afin de mieux orienter les \ninvestissements. \n• Optimiser le suivi des performances marketing en centralisant les \nindicateurs clés et en identifiant les  anomalies et opportunités \nd’amélioration. \n• Améliorer le contrôle de l’exécution des campagnes média en vérifiant la \ndiffusion radio effective des spots publicitaires et en comparant leur \ndiffusion réelle au planning prévu. \n• Améliorer le suivi des campagnes marketing terrain grâce à la \ngéolocalisation et aux preuves photographiques de l’installation des \nsupports publicitaires. \n• Mesurer l’efficacité de la distribution des supports promotionnels grâce aux \nscans des QR Codes des clients. \n• Permettre un meilleur ciblage géographique grâce à l’analyse des zones \ngénérant le plus d’interactions et de prospects. \n• Rendre les outils marketing avancés accessibles aux petites entreprises qui \nne disposent p as de ressources suffisantes pour constituer une équipe \nmarketing compl",
+    "source": "kiyanza_cadrage.pdf",
+    "document": "Document de cadrage",
+    "chunk_id": "chunk_0010"
+  },
+  {
+    "section": "OBJECTIFS",
+    "text": "l’analyse des zones \ngénérant le plus d’interactions et de prospects. \n• Rendre les outils marketing avancés accessibles aux petites entreprises qui \nne disposent p as de ressources suffisantes pour constituer une équipe \nmarketing complète. \n• Adapter les stratégies marketing aux réalités des marchés en développement \nen tenant compte des contraintes et spécificités locales.",
+    "source": "kiyanza_cadrage.pdf",
+    "document": "Document de cadrage",
+    "chunk_id": "chunk_0011"
+  },
+  {
+    "section": "FONCTIONNALITES",
+    "text": "1. Assistant IA marketing intelligent \nL’assistant IA de Liyanza constitue un espace d’accompagnement marketing \naccessible aux entreprises. Il permet aux utilisateurs d’obtenir des réponses à leurs \nquestions marketing quotidiennes, mais également de concevoir, planifier et \nanticiper leurs campagnes grâce à un parcours guidé. \nL’assistant fonctionne selon deux modes principaux : \nA. Mode « Poser une question » \nCe mode permet aux entrepreneurs et responsables marketing d’échanger \nlibrement avec l’IA sur leurs problématiques quotidiennes liées au marketing et à \nla communication. \nL’utilisateur peut poser toutes sortes de questions, par exemple : \n➢ Comment mieux communiquer avec sa cible ; \n➢ Quel réseau social est meilleur pour son secteur d’activité ? \n➢ C’est quoi le SEO marketing ?  \nL’IA fournit des réponses contextualisées, des conseils pratiques et des \norientations adaptées aux besoins de l’entreprise. \nB. Mode « Créer une campagne » \nCe mode accompagne l’utilisateur dans la conception complète d’une campagne \nmarketing grâce à un processus structuré. \nÉtape 1 : Collecte des informations clés \nAvant de générer une stratégie, l’IA propose un formulaire interac tif permettant \nde recueillir les informations essentielles à la réussite de la campagne, notamment: \n➢ L’objectif de la campagne  \n➢ Le produit ou service concerné ; \n➢ La cible visée  \n➢ Les ressources disponibles (Budget, etc) \nCette étape permet à l’IA de mieux comprendre le contexte de l’entreprise et \nd’adapter ses propositions. \n \n \nÉtape",
+    "source": "kiyanza_cadrage.pdf",
+    "document": "Document de cadrage",
+    "chunk_id": "chunk_0012"
+  },
+  {
+    "section": "FONCTIONNALITES",
+    "text": "Le produit ou service concerné ; \n➢ La cible visée  \n➢ Les ressources disponibles (Budget, etc) \nCette étape permet à l’IA de mieux comprendre le contexte de l’entreprise et \nd’adapter ses propositions. \n \n \nÉtape 2 : Génération d’un plan marketing et communication \nÀ partir de s informations collectées, l’IA élabore une stratégie de campagne \npersonnalisée comprenant notamment : \n➢ Une proposition de stratégie marketing  \n➢ Un plan de communication adapté  \n➢ Les approches recommandées pour atteindre la cible  \n➢ Les canaux de communication pertinents  \n➢ Les actions à réaliser avant, pendant et après la campagne. \nL’objectif est de permettre aux entreprises de disposer d’une feuille de route claire \nsans avoir besoin d’une expertise marketing avancée. \nÉtape 3 : Simulation de la campagne \nAvant le lancement réel, Liyanza permet de simuler le déroulement potentiel de la \ncampagne. L’IA analyse les paramètres de la campagne et fournit une projection \ndes résultats possibles, notamment : \n➢ Les performances potentielles  \n➢ L’impact attendu auprès de la cible  \n➢ Les points forts et limites de la stratégie proposée ; \nLes ajustements recommandés pour améliorer les chances de réussite.  Cette \nsimulation permet aux entreprises de mieux anticiper leurs investissements et de \nprendre des décisions plus éclairées avant de déployer leur campagne. \n2. Analyse des performances marketing \nCette fonctionnalité permet aux entreprises d’évaluer l’efficacité de leurs actions \nmarketing en analysant les résultats obtenus après le lancement d’une campagne.",
+    "source": "kiyanza_cadrage.pdf",
+    "document": "Document de cadrage",
+    "chunk_id": "chunk_0013"
+  },
+  {
+    "section": "FONCTIONNALITES",
+    "text": "plus éclairées avant de déployer leur campagne. \n2. Analyse des performances marketing \nCette fonctionnalité permet aux entreprises d’évaluer l’efficacité de leurs actions \nmarketing en analysant les résultats obtenus après le lancement d’une campagne. \nElle tr ansforme les données collectées en informations compréhensibles afin \nd’aider les entreprises à mieux comprendre l’impact de leurs décisions marketing. \nL’utilisateur peut connecter ou renseigner les données liées à ses campagnes afin \nque Liyanza puisse analyser leur performance et identifier les éléments importants. \nLa fonctionnalité permet notamment de : \n➢ Mesurer les résultats des campagnes marketing en analysant les indicateurs \nclés de performance (KPI) liés aux objectifs définis au départ. \n➢ Évaluer l’efficacité des actions réalisées en identifiant les stratégies, canaux \nou approches qui ont généré les meilleurs résultats. \n➢ Comparer les performances obtenues avec les objectifs initiaux afin de \ndéterminer si la campagne a atteint les résultats attendus. \n➢ Identifier les  points forts et les points faibles d’une campagne pour \ncomprendre ce qui a fonctionné et les aspects nécessitant des améliorations. \n➢ Analyser le comportement et la réaction de l’audience afin de mieux \ncomprendre l’engagement des clients et l’impact d e la strategie marketing \net communication. \nGrâce à cette fonctionnalité, Liyanza permet aux entreprises de ne plus se baser \nuniquement sur des impressions ou des suppositions, mais d’utiliser leurs données \npour améliorer continuellement leurs stratégies marketing. \n3. Génération de recommandations marketing personn",
+    "source": "kiyanza_cadrage.pdf",
+    "document": "Document de cadrage",
+    "chunk_id": "chunk_0014"
+  },
+  {
+    "section": "FONCTIONNALITES",
+    "text": "âce à cette fonctionnalité, Liyanza permet aux entreprises de ne plus se baser \nuniquement sur des impressions ou des suppositions, mais d’utiliser leurs données \npour améliorer continuellement leurs stratégies marketing. \n3. Génération de recommandations marketing personnalisées \nGrâce à l’intelligence artificielle, Liyanza identifie les opportunités d’amélioration \net propose des actions concrètes en fonction du contexte spécifique de chaque \nentreprise. \nLa fonctionnalité permet notamment de : \n➢ Proposer des recommandations stratégiq ues adaptées en fonction d e la \nperformance d’une campagne. \n➢ Identifier et alerter sur  les actions à améliorer ou à ajuster dans une \ncampagne marketing afin d’augmenter son efficacité. \n➢ Anticiper les besoins et opportunités marketing en identifiant des tendances, \ndes pistes d’amélioration et des stratégies potentielles adaptées à l’évolution \nde l’entreprise. \nL’objectif de cette fonctionnalité est de transformer les données et informations \nmarketing en recommandations concrètes, permettant aux entreprises de prendre \ndes décisions plus rapides, plus pertinentes et mieux adaptées à leurs objectifs. \n4. QR Code intelligent pour suivre le zoning et la distribution \nCette fonctionnalité perme t aux entreprises de mesurer l’impact réel de leurs \nsupports marketing physiques (affiches, panneaux, flyers, points de vente, etc.) \ngrâce à des QR Codes uniques associés à chaque emplacement ou support de \ncommunication.  \nChaque affichage dispose d’un QR C ode spécifique permettant d’identifier \nprécisément l’origine des interactions des clients. \n \n \n➢ Création de",
+    "source": "kiyanza_cadrage.pdf",
+    "document": "Document de cadrage",
+    "chunk_id": "chunk_0015"
+  },
+  {
+    "section": "FONCTIONNALITES",
+    "text": "grâce à des QR Codes uniques associés à chaque emplacement ou support de \ncommunication.  \nChaque affichage dispose d’un QR C ode spécifique permettant d’identifier \nprécisément l’origine des interactions des clients. \n \n \n➢ Création de QR Codes uniques par emplacement \nPour une même campagne, l’entreprise peut générer plusieurs QR Codes selon les \nlieux de diffusion.  \nPar exemple :  \n- Une affiche dans un quartier A possède un QR Code spécifique  \n- Une affiche dans un quartier B possède un autre QR Code  \n- Un point de vente ou un événement dispose également de son propre QR Code. \nAinsi, chaque scan est associé à un emplacement précis. \n➢ Interaction avec les clients \nLorsqu’un client scanne le QR Code, il est redirigé vers une action définie par \nl’entreprise, par exemple :  une conversation WhatsApp avec l’entreprise , u n \nformulaire pour recueillir ses informations, une page de présentation d’un produit \nou service ou une offre promotionnelle spécifique. \nCette interaction permet à l’entreprise de transformer l’intérêt d’un consommateur \nen opportunité commerciale. \n➢ Collecte et analyse des données \nÀ travers les scans et les informations renseignées par les utilisateurs, Liyanza \ncollecte des données permettant de comprendre l’efficacité des différents \nemplacements. \nLa plateforme peut notamment identifier : le nombre de personnes ayant interagi \navec chaque QR Code et les quartiers ou zones générant le plus d’intérêt, de clients \nactifs ou potentiels. \nGrâce aux données collectées, Liyanza aide les entreprises à prendre de meilleures \ndécisions concernant leurs supports physiques.",
+    "source": "kiyanza_cadrage.pdf",
+    "document": "Document de cadrage",
+    "chunk_id": "chunk_0016"
+  },
+  {
+    "section": "FONCTIONNALITES",
+    "text": "avec chaque QR Code et les quartiers ou zones générant le plus d’intérêt, de clients \nactifs ou potentiels. \nGrâce aux données collectées, Liyanza aide les entreprises à prendre de meilleures \ndécisions concernant leurs supports physiques. \nL’entreprise peut ainsi savoir :  où placer ses prochaines affiches , quels quartiers \ncibler davantage , q uels emplacements génèrent le plus de prospects et q uels \nsupports de communication méritent plus d’investissement. \n➢ Recommandations basées sur les données \nLes informations recueillies peuvent être utilisées par l’IA de Liyanza pour \nproposer des recommandations, comme : renforcer une campagne dans certaines \nzones, réduire les investissements dans des emplacements peu performants, et \nadapter le ciblage géographique selon les comportements observés. \nEn résumé, ce QR Code transforme les supports marketi ng physiques en sources \nde données mesurables, permettant aux entreprises de comprendre où se trouvent \nleurs clients potentiels et d’optimiser leurs investissements publicitaires. \n➢ Suivi de la distribution des supports \nPour les panneaux et emplacements publicitaires \nLorsqu'un prestataire est chargé d'installer des affiches d ans différents \nemplacements, il dispose d'un espace  (lien) dédié dans Liyanza pour \nphotographier l'affiche une fois installée. La photo est automatiquement associée \nà :  la position géographique , la zone ou le quartier , la date et l'heure de \nl'installation. \nLe r esponsable peut ainsi vérifier visuellement et géographiquement que les \naffiches ont effectivement été installées",
+    "source": "kiyanza_cadrage.pdf",
+    "document": "Document de cadrage",
+    "chunk_id": "chunk_0017"
+  },
+  {
+    "section": "FONCTIONNALITES",
+    "text": "iquement associée \nà :  la position géographique , la zone ou le quartier , la date et l'heure de \nl'installation. \nLe r esponsable peut ainsi vérifier visuellement et géographiquement que les \naffiches ont effectivement été installées aux emplacements prévus. \nPour les flyers \nChaque lot de flyers distribué par un commercial est associé à un QR Code unique \npermettant d’identifier la zone de distribution. Lorsqu’un client scanne le QR \nCode, Liyanza enregistre l’interaction et l’associe à cette zone. \nLe nombre de scans permet ainsi d’évaluer si les flyers ont effectivement atteint \nles clients et la capacité des commerciaux à transformer la distribution en action. \nPar exemple, 200 flyers devant être distribués à Bepanda et 80 scans permettent \nde mesurer le nombre de scans générer par les commerciaux d ’une zone et de \ncomparer les performances avec les autres commerciaux ou zones. \n5. Monitoring intelligent des diffusions radio \nCette fonctionnalité surveille automatiquement la diffusion réelle des spots \npublicitaires sur les flux radio. Il connaît le planning prévu de la campagne, écoute \net analyse le flux audio, détecte automatiquement le passage du spot, compare \nl'heure réelle de diffusion à l'heure prévue, et génère un rapport de conformité. \nLes u tilisateurs concernés sont les e ntreprises ayant acheté des espaces \npublicitaires radio. C’est-à-dire des responsables souhaitant vérifier le respect des \ncontrats de diffusion. \nLes données en entrée sont le planning de diffusion prévu (fourni par l'entreprise \nou son partenaire média) et le flux audio en direct de la station",
+    "source": "kiyanza_cadrage.pdf",
+    "document": "Document de cadrage",
+    "chunk_id": "chunk_0018"
+  },
+  {
+    "section": "FONCTIONNALITES",
+    "text": "’est-à-dire des responsables souhaitant vérifier le respect des \ncontrats de diffusion. \nLes données en entrée sont le planning de diffusion prévu (fourni par l'entreprise \nou son partenaire média) et le flux audio en direct de la station radio concernée. \nLe résultat produit par l'IA est un rapport de conformité indiquant, pour chaque \ndiffusion prévue, si le s pot a été diffusé, à quelle heure réellement, et l'écart \néventuel avec l'heure prévue. \nExemple concret  \nUn spot prévu à 8h05 sur une radio de Douala est détecté à 8h12 . Le  rapport \nsignale un décalage de 7 minutes.] \n6. Tableau de bord administratif et gestion des équipes \nCette fonctionnalité permet aux responsables marketing de centraliser la gestion \ndes campagnes, des collaborateurs et des tâches au sein d'un tableau de bord \nunique. Elle facilite l'organisation du travail, le suivi des activités et la \ncollaboration entre les membres de l'équipe. \n➢ Gestion des sous-comptes et des permissions \nL'administrateur peut créer plusieurs sous -comptes pour les membres de son \néquipe (respons ables marketing, community managers, chargés de \ncommunication, etc.) et attribuer à chacun des rôles et des niveaux d'accès \nspécifiques. \nLes permissions permettent notamment de définir qui peut :  consulter les \ncampagnes, créer ou modifier des campagnes , accéder aux analyses de \nperformances, utiliser l'assistant IA, et gérer les paramètres de la plateforme. \n➢ Attribution et suivi des tâches \nLe responsable peut créer des",
+    "source": "kiyanza_cadrage.pdf",
+    "document": "Document de cadrage",
+    "chunk_id": "chunk_0019"
+  },
+  {
+    "section": "FONCTIONNALITES",
+    "text": "consulter les \ncampagnes, créer ou modifier des campagnes , accéder aux analyses de \nperformances, utiliser l'assistant IA, et gérer les paramètres de la plateforme. \n➢ Attribution et suivi des tâches \nLe responsable peut créer des tâches, les attribuer à un ou plusieurs collaborateurs, \nfixer des échéances et suivre leur état d'avancement. \nCette fonctionnalité permet de :  répartir les responsabilités entre les membres de \nl'équipe, suivre les tâches en cours, terminées ou en retard , et améliorer la \ncoordination des activités marketing. \n➢ Vue d'ensemble des activités \nLe tableau de bord offre une vision globale des campagnes, des performances et \ndes tâches de l'équipe. Les responsables peuvent ainsi suivre l'avancement des \nprojets en temps réel et identifier rapidement les actions nécessitant une \nintervention. \nEn centralis ant la gestion des utilisateurs, des permissions et des tâches, cette \nfonctionnalité améliore la collaboration entre les équipes et facilite le travail des \nactivités marketing.",
+    "source": "kiyanza_cadrage.pdf",
+    "document": "Document de cadrage",
+    "chunk_id": "chunk_0020"
+  },
+  {
+    "section": "USER PERSONAS",
+    "text": "Les User Personas représentent les principaux profils d’utilisateurs confrontés aux \ndéfis liés à la planification, au suivi et à l’optimisation des actions marketing. Ils \npermettent de mieux comprendre leurs objectifs, leurs outils actuels, leurs \nfrustrations et leurs besoins afin de concevoir une solution adaptée à leurs réalités \nprofessionnelles. \nCes profils illustrent trois types d’utilisateurs clés : les responsables marketing qui \ncherchent à accélérer la prise de décision, les responsables de produits qui \nsouhaitent mieux anticiper et mesurer la performance des offres, et les \nresponsables communication qui ont besoin de mieux coordonner et optimiser \nleurs campagnes. \nPersona 1 : Léane Yvanna, Directrice Marketing \nLéane représente les responsables marketing qui disposent déjà de nombreuses \ndonnées, mais qui rencontrent des difficultés à les exploiter ra pidement pour \norienter leurs décisions stratégiques. \n \nImage 1 : Profil Directrice Marketing \nAvec Liyanza, elle peut centraliser l’analyse des performances, obtenir une vision \nplus claire de l’efficacité des campagnes, simuler les résultats potentiels avant \ninvestissement et recevoir des recommandations basées sur les données. Cela lui \npermet d’accélérer la prise de décision, de mieux prioriser les investissements et \nde justifier plus facilement ses choix marketing. \n \n \n\nPersona 2: Nna Aristide, Chef Segment Client Retail \nAristide représente les responsables chargés de concevoir des offres et de mesurer \nleur impact auprès des clients. Son principal défi est de réduire l’incertitude avant \nle",
+    "source": "kiyanza_cadrage.pdf",
+    "document": "Document de cadrage",
+    "chunk_id": "chunk_0021"
+  },
+  {
+    "section": "USER PERSONAS",
+    "text": "Persona 2: Nna Aristide, Chef Segment Client Retail \nAristide représente les responsables chargés de concevoir des offres et de mesurer \nleur impact auprès des clients. Son principal défi est de réduire l’incertitude avant \nle lancement d’une offre et d’analyser rapidement les résultats après son \ndéploiement. \n \nImage 2 : Profil Chef Segment Client \nLiyanza l’aide à concevoir des stratégies de campagne adaptées, à simuler les \nperformances potenti elles d’une offre avant son lancement et à analyser les \nrésultats obtenus afin d’identifier rapidement les axes d’amélioration. Il peut ainsi \noptimiser ses offres et prendre des décisions basées sur des données plutôt que sur \ndes hypothèses. \nPersona 3 : Ddjunet Dorcas, Responsable Communication Digitale \nDorcas représente les professionnels de la communication digitale qui doivent \ngérer plusieurs étapes d’une campagne tout en assurant le suivi de ses \nperformances. \n \nImage 3 : Profil Responsable Communication Digitale \n \n \n\nLiyanza lui permet de structurer ses campagnes grâce à la génération de plans de \ncommunication, de suivre leurs performances et d’obtenir des recommandations \npour améliorer leur impact. La plateforme lui offre ainsi une meilleure visibilité \nsur ses actions, réduit le temps consacré à l’analyse et facilite l’optimisation \ncontinue de ses campagnes. \n \n  \nETUDE DE L’EXISTANT \n \nIntroduction \nDans le cadre d u cadrage de Liyanza, une étude de l'existant a été réalisée afin \nd'analyser les principales solu tions disponibles sur le marché dans les domaines \ndu marketing",
+    "source": "kiyanza_cadrage.pdf",
+    "document": "Document de cadrage",
+    "chunk_id": "chunk_0022"
+  },
+  {
+    "section": "USER PERSONAS",
+    "text": "ETUDE DE L’EXISTANT \n \nIntroduction \nDans le cadre d u cadrage de Liyanza, une étude de l'existant a été réalisée afin \nd'analyser les principales solu tions disponibles sur le marché dans les domaines \ndu marketing, de la gestion de la relation client (CRM), de l'analyse des \nperformances et de l'intelligence artificielle.  \nCette analyse vise à comprendre les fonctionnalités proposées, à identifier les \nforces et les limites de ces plateformes, ainsi que les besoins utilisateurs qui \ndemeurent insuffisamment couverts. \n1. HubSpot \nHubSpot est une plateforme CRM qui regroupe des outils de marketing, de vente, \nde service client et d'analyse des données au sein d'un environnement unique. Elle \npermet aux entreprises de gérer leurs contacts, d'automatiser leurs campagnes \nmarketing, de suivre les performances commerciales et d'améliorer la relation \nclient grâce à des fonctionnalités intégrant l'intelligence artificielle. \nParmi ses principales fonctionnalités figurent la gestion des prospects, \nl'automatisation des campagnes marketing, la création de contenus, les tableaux \nde bord analytiques, la gestion du service client ainsi que de nombreuses \nintégrations avec des applications tierces. \nPoints forts \n- Plateforme complète regroupant CRM, marketing et ventes. \n- Automatisation avancée des campagnes. \n- Analyse des performances marketing. \n- Intégration de fonctionnalités d'intelligence artificielle. \nLimites par rapport à Liyanza \nMalgré sa richesse fonctionnelle, HubSpot reste principalement orienté vers la \ngestion de la relation client. Elle regroupe aussi un très",
+    "source": "kiyanza_cadrage.pdf",
+    "document": "Document de cadrage",
+    "chunk_id": "chunk_0023"
+  },
+  {
+    "section": "USER PERSONAS",
+    "text": ". \n- Intégration de fonctionnalités d'intelligence artificielle. \nLimites par rapport à Liyanza \nMalgré sa richesse fonctionnelle, HubSpot reste principalement orienté vers la \ngestion de la relation client. Elle regroupe aussi un très grand nombre de modules \net de fonctionnalités, ce qui peut la rendre complexe à prendre en main, notamment \npour les entreprises ne disposant pas d'une équipe marketing ou des connaissances \ntechnique dédiée. Les utilisateurs peuvent rapidement se sentir perdus face à la \nrichesse de l'interface et à la multiplicité des outils disponibles.   \nIl n'accompagne pas l'utilisateur dans la conception stratégique d'une campagne \nmarketing à partir de ses objectifs. De plus, il ne permet pas de simuler  les \nperformances potentielles d'une campagne avant son lancement afin d'anticiper les \nrésultats. Enfin, son coût et sa complexité peuvent représenter un frein pour de \nnombreuses entreprises africaines. \n2. Hootsuite \nHootsuite est une plateforme spécialisée dans la gestion des réseaux sociaux. Elle \npermet aux entreprises de planifier leurs publications, suivre leurs performances, \ngérer les interactions avec leur communauté et effectuer une veille concurrentielle. \nElle propose également des outils d'analyse, des tabl eaux de bord et des \nfonctionnalités d'intelligence artificielle destinées à assister la création de contenu \net l'analyse des performances. \nPoints forts \n- Gestion centralisée de plusieurs réseaux sociaux. \n- Analyse détaillée des performances. \n- Veille concurrentielle et Social Listening. \n- Rapports automatisés. \nLimites par rapport",
+    "source": "kiyanza_cadrage.pdf",
+    "document": "Document de cadrage",
+    "chunk_id": "chunk_0024"
+  },
+  {
+    "section": "USER PERSONAS",
+    "text": "l'analyse des performances. \nPoints forts \n- Gestion centralisée de plusieurs réseaux sociaux. \n- Analyse détaillée des performances. \n- Veille concurrentielle et Social Listening. \n- Rapports automatisés. \nLimites par rapport à Liyanza \nHootsuite est essentiellement conçu pour les réseaux sociaux. La plateforme n'aide \npas les entreprises à élaborer une stratégie marketing complète, ni à simuler une \ncampagne avan t son déploiement. Les recommandations proposées concernent \nprincipalement les publications sociales et non la stratégie marketing globale. \n3. Meta Business Suite \nMeta Business Suite est la plateforme gratuite développée par Meta pour gérer les \nactivités marketing sur Facebook et Instagram. Elle offre des outils permettant de \ncréer des publications, lancer des campagnes publicitaires, suivre les statistiques \net gérer les interactions avec les utilisateurs. \nElle constitue une solution efficace pour les entre prises dont la communication \nrepose principalement sur les plateformes Meta. \nPoints forts \n- Gratuit. \n- Gestion simplifiée des campagnes Facebook et Instagram. \n- Statistiques intégrées. \n- Gestion des messages et commentaires. \n \nLimites par rapport à Liyanza \nMeta Busi ness Suite est limité aux plateformes de Meta. Il ne propose pas \nd'accompagnement intelligent pour la conception des campagnes, de simulation \ndes résultats ou de recommandations marketing basées sur les objectifs de \nl'entreprise. Les analyses restent essentiellement descriptives. \n4. Pecan AI \nPecan AI est une plateforme d'intelligence artificielle spécialisée dans l'analyse \npr",
+    "source": "kiyanza_cadrage.pdf",
+    "document": "Document de cadrage",
+    "chunk_id": "chunk_0025"
+  },
+  {
+    "section": "USER PERSONAS",
+    "text": "recommandations marketing basées sur les objectifs de \nl'entreprise. Les analyses restent essentiellement descriptives. \n4. Pecan AI \nPecan AI est une plateforme d'intelligence artificielle spécialisée dans l'analyse \nprédictive. Elle utilise le Machine Learning afin d'aider les entreprises à anticiper \ndifférents comportements tels que la perte de clients, la valeur future d'un client \nou les probabilités de conversion. \nLa plateforme automatise la création de modèles prédictifs et facilite l'exploitation \ndes données sans nécessiter une expertise avancée en Data Science. \nPoints forts \n- Analyse prédictive avancée. \n- Prévision des comportements clients. \n- Modèles de Machine Learning automatisés. \n- Aide à la prise de décision basée sur les données. \nLimites par rapport à Liyanza \nPecan AI est exclusivement orienté vers l'analyse des données. Il ne permet pas de \nconcevoir une campagne marketing, d'accompag ner les utilisateurs dans leurs \ndécisions marketing quotidiennes ou de proposer une stratégie complète adaptée \naux objectifs de l'entreprise. \n5. Salesforce \nSalesforce est un outil  CRM qui intègre des outils de gestion commercial e, \nmarketing, service client, analyse des données et intelligence artificielle afin \nd’offrir une vision unifiée des activités de l’entreprise. \nGrâce à son écosystème, Salesforce permet de gérer les ventes, les campagnes \nmarketing, les parcours clients ainsi que les performances commerciales. \nPoints forts \n- CRM très complet. \n- Intelligence artificielle intégrée. \n- Nombreuses intégrations",
+    "source": "kiyanza_cadrage.pdf",
+    "document": "Document de cadrage",
+    "chunk_id": "chunk_0026"
+  },
+  {
+    "section": "USER PERSONAS",
+    "text": "son écosystème, Salesforce permet de gérer les ventes, les campagnes \nmarketing, les parcours clients ainsi que les performances commerciales. \nPoints forts \n- CRM très complet. \n- Intelligence artificielle intégrée. \n- Nombreuses intégrations. \n- Analyse décisionnelle avancée. \nLimites par rapport à Liyanza \nSalesforce cible principalement les grandes organisations disposant d'importantes \nressources techniques et financières. Sa mise en œuvre est relativement complexe. \nBien qu'il intègre de nombreuses fonctionnalités d'IA, il ne propose pas une \napproche simple permettant aux entreprises de créer une campagne, d'en simuler \nles perfor mances et d'obtenir des recommandations marketing adaptées à leur \ncontexte. \nLiyanza propose donc une approche intégrée de l'intelligence marketing différente \nen réunissant, au sein d'une seule plateforme, les principales étapes du processus \ndécisionnel.",
+    "source": "kiyanza_cadrage.pdf",
+    "document": "Document de cadrage",
+    "chunk_id": "chunk_0027"
+  },
+  {
+    "section": "CONCLUSION",
+    "text": "Ce document de cadrage montre que les équipes marketing disposent aujourd’hui \nde nombreuses données et outils, mais rencontrent encore des difficultés à les \nexploiter rapidement pour prendre de bonnes décisions. Les principaux dé fis \nidentifiés concernent le manque de temps dans l’analyse, la difficulté à anticiper \nles performances des campagnes, le suivi complexe des actions marketing et le \nbesoin de recommandations adaptées pour optimiser les investissements. \nCes constats orientent la conception de Liyanza vers une solution d’intelligence \nmarketing capable d’accompagner les entreprises dans tout le cycle de leurs \ncampagnes : de la réflexion stratégique à la simulation, en passant par l’analyse \ndes performances et la génération de  recommandations. L’objectif est de fournir \nun outil simple et accessible permettant aux équipes marketing de gagner du \ntemps, réduire l’incertitude et améliorer l’efficacité de leurs décisions.",
+    "source": "kiyanza_cadrage.pdf",
+    "document": "Document de cadrage",
+    "chunk_id": "chunk_0028"
+  },
+  {
+    "section": "1. Objet du document",
+    "text": "Ce document décrit, de manière détaillée et accessible, ce que doit faire la partie Intelligence \nArtificielle (IA) du projet Kiyanza. Il s'adresse en priorité à l'équipe technique en charge de la \nréaliser, mais il est rédigé pour être compris par toute personne liée au projet (chef de projet, \ndesigners, développeurs(Web, Mobile, IoT), mentors).  \nIl répond à trois questions simples : à quoi sert l'IA dans KIYANZA, que doit-elle faire \nprécisément, et selon quelles règles et contraintes.  \nCe cahier des charges se concentre uniquement sur la partie IA du projet. Le contexte général, \nla problématique et la présentation complète de la solution KIYANZA sont détaillés dans le \nDocument de Cadrage du projet ; ils sont brièvement rappelés ci-dessous pour la cohérence de \nlecture.  \nChef de projet  \nDesigner  \nDeveloppeur Web  \nDeveloppeur Mobile  \nIoT  \nDate  \n  \n/9  \n  \n2",
+    "source": "kiyanza_cahier_des_charges_ia.pdf",
+    "document": "Cahier des charges IA",
+    "chunk_id": "chunk_0029"
+  },
+  {
+    "section": "2. Rappel du contexte du projet",
+    "text": "Kiyanza est un assistant marketing intelligent destiné aux entreprises des marchés émergents, \nen particulier en Afrique. De nombreuses entreprises de ces marchés ne disposent ni d'une \néquipe marketing complète, ni des outils adaptés pour planifier leurs campagnes, analyser leurs \ndonnées ou évaluer l'impact de leurs actions avant d'investir.  \nKIYANZA répond à ce besoin en centralisant, au sein d'une seule plateforme, la conception des \ncampagnes, leur simulation avant lancement, le suivi de leurs performances, la génération de \nrecommandations et le contrôle de leur diffusion réelle sur le terrain.  \nL'Intelligence Artificielle est le moteur central de cette promesse : c'est elle qui comprend les \nbesoins de l'entreprise, qui l'aide à construire sa stratégie, qui anticipe les résultats d'une \ncampagne avant qu'elle ne coûte de l'argent, et qui transforme les données collectées en conseils \ncompréhensibles et actionnables.",
+    "source": "kiyanza_cahier_des_charges_ia.pdf",
+    "document": "Cahier des charges IA",
+    "chunk_id": "chunk_0030"
+  },
+  {
+    "section": "3. Objectifs de la partie Intelligence Artificielle",
+    "text": "La partie IA du projet poursuit les objectifs suivants :  \n● Comprendre les besoins marketing exprimés en langage naturel par l'utilisateur et lui \nrépondre de façon claire et utile.  \n● Aider une entreprise à construire une stratégie et un plan de communication adaptés à \nses objectifs, sans qu'elle ait besoin d'une expertise marketing avancée.  \n● Simuler, avant le lancement d'une campagne, les résultats probables de celle-ci afin de \nréduire le risque d'un mauvais investissement.  \n● Analyser les données réelles d'une campagne terminée pour en évaluer l'efficacité de \nfaçon objective.  \n● Générer des recommandations personnalisées et compréhensibles pour améliorer les \ncampagnes futures.  \n● Détecter automatiquement, à partir des flux radio, si un spot publicitaire a bien été \ndiffusé comme prévu.  \n● S'appuyer sur les données de scan des QR Codes pour éclairer les décisions liées aux \nemplacements physiques (affiches, points de vente, etc.).  \n/9  \n  \n3 \n  \nUn principe transverse guide toutes ces briques : rester simple, compréhensible et digne de \nconfiance pour un utilisateur non technique, qui doit toujours pouvoir comprendre pourquoi \nl'IA lui fait telle ou telle proposition.",
+    "source": "kiyanza_cahier_des_charges_ia.pdf",
+    "document": "Cahier des charges IA",
+    "chunk_id": "chunk_0031"
+  },
+  {
+    "section": "4. Périmètre fonctionnel de l'IA",
+    "text": "La partie IA de Kiyanza est organisée en six briques fonctionnelles, décrites une à une \ncidessous. Pour chacune, ce document précise : ce qu'elle fait, qui l'utilise, quelles données elle \nreçoit, ce qu'elle produit, les règles à respecter, et un exemple concret.",
+    "source": "kiyanza_cahier_des_charges_ia.pdf",
+    "document": "Cahier des charges IA",
+    "chunk_id": "chunk_0032"
+  },
+  {
+    "section": "4.1. Assistant IA marketing",
+    "text": "— Mode « Poser une question »  \nUn espace de discussion libre dans lequel l'utilisateur pose toute question liée au marketing \nou à la communication (ex. : « Quel réseau social est le plus adapté à mon secteur ? », « \nQu'est-ce que le SEO ? »). L'IA doit répondre de façon claire, contextualisée à l'activité de \nl'entreprise si l'information est disponible, et pratique.  \nUtilisateurs concernés  Entrepreneurs, responsables marketing, community managers.  \nDonnées en entrée  Question posée en langage naturel (français) ; informations de profil de l'entreprise déjà \nconnues par la plateforme (secteur d'activité, taille, etc.) si disponibles.  \nRésultat produit par l'IA  Une réponse rédigée en langage clair, avec des conseils concrets et, si utile, des exemples \nou des étapes à suivre.  Et une presentation de la fonctionalité de la plateforme qu i \nsolutionne son besoin.    \nRègles  de  gestion  /  \nconditions  \nLa réponse doit rester dans le domaine marketing/communication ; elle doit signaler \nclairement à l'utilisateur quand une information nécessite une vérification humaine (ex. \nquestions légales ou financières).  \nExemple  concret  \nd'utilisation  \nUn artisan textile pose la question « Comment toucher plus de clients à Douala avec un \npetit budget ? » et reçoit une liste de pistes adaptées à son contexte.",
+    "source": "kiyanza_cahier_des_charges_ia.pdf",
+    "document": "Cahier des charges IA",
+    "chunk_id": "chunk_0033"
+  },
+  {
+    "section": "4.2. Assistant IA marketing",
+    "text": "— Mode « Créer une campagne » (collecte d'informations) \nUn parcours guidé, sous forme de formulaire interactif conversationnel, qui recueille les \ninformations essentielles avant de construire une stratégie : objectif de la campagne, produit \nou service concerné, cible visée, ressources disponibles (budget, etc.).  \nUtilisateurs concernés  Toute entreprise souhaitant lancer une nouvelle campagne marketing.  \nDonnées en entrée  Réponses de l'utilisateur aux questions posées par l'IA (texte libre ou choix guidés).  \nRésultat produit par l'IA  Un profil de campagne structuré (objectif, cible, budget, produit) prêt à être utilisé par le \nmodule de génération de plan.  \nRègles  de  gestion  /  \nconditions  \nToutes les informations indispensables (objectif, cible, budget minimal) doivent être \nobtenues avant de passer à l'étape suivante ; l'IA doit pouvoir reformuler ses questions si \nla réponse de l'utilisateur est incomplète.  \n/9  \n  \n4 \n  \nExemple  concret  \nd'utilisation  \nUne PME de cosmétiques indique vouloir « augmenter ses ventes en ligne pendant les \nfêtes, cible femmes 20 -35 ans, budget 300 000 FCFA » ; l'IA structure ces informations \navant de proposer une stratégie.",
+    "source": "kiyanza_cahier_des_charges_ia.pdf",
+    "document": "Cahier des charges IA",
+    "chunk_id": "chunk_0034"
+  },
+  {
+    "section": "4.3. Génération d'un plan marketing",
+    "text": "et de communication  \nÀ partir des informations collectées, l'IA élabore une proposition de stratégie complète : \napproche marketing recommandée, plan de communication, canaux pertinents, et actions à \nmener avant, pendant et après la campagne.  \nUtilisateurs concernés  Entreprises et responsables marketing en phase de conception de campagne.   \nDonnées en entrée  Le profil de campagne structuré produit à l'étape 4.2 ; éventuellement des données \nhistoriques de campagnes similaires si disponibles.  \nRésultat produit par l'IA  Un document de plan marketing lisible : stratégie proposée, canaux recommandés, \ncalendrier d'actions, justification des choix.  \nRègles  de  gestion  /  \nconditions  \nLa proposition doit être adaptée au budget et aux ressources déclarées ; elle doit rester \nréaliste pour une petite structure et éviter les recommandations nécessitant des moyens \nhors de portée de l'entreprise.  \nExemple  concret  \nd'utilisation  \nPour la campagne de fêtes citée plus haut, l'IA propose un plan combinant réseaux sociaux, \npromotions ciblées et affichage local, avec un calendrier sur 6 semaines.",
+    "source": "kiyanza_cahier_des_charges_ia.pdf",
+    "document": "Cahier des charges IA",
+    "chunk_id": "chunk_0035"
+  },
+  {
+    "section": "4.4. Simulation de campagne",
+    "text": "(prédiction de performance avant lancement)  \nAvant le lancement réel d'une campagne, l'IA analyse les paramètres de la stratégie proposée et \nfournit une projection des résultats possibles : performances attendues, impact estimé sur la \ncible, points forts et limites de la stratégie, ajustements recommandés.  \nUtilisateurs concernés  Entreprises souhaitant valider une stratégie avant d'investir.  \nDonnées en entrée  Le plan marketing généré à l'étape 4.3 ; les données de campagnes passées (de l'entreprise \nou du secteur) servant de référence pour la projection.  \nRésultat produit par l'IA  Une estimation compréhensible des résultats probables (ex. portée estimée, niveau \nd'engagement attendu), accompagnée des limites et incertitudes de cette estimation, et de \nsuggestions d'ajustement.  \nRègles  de  \nconditions  \ngestion  /  La simulation doit toujours indiquer qu'il s'agit d'une estimation et non d'une garantie ; \nelle doit être recalculée si l'utilisateur modifie un paramètre de la campagne (budget, cible, \ncanal).  \nExemple  \nd'utilisation  \nconcret  Avant de lancer sa campagne de fêtes, la PME de cosmétiques voit une estimation de \nportée et reçoit la suggestion d'augmenter la part du budget consacrée aux réseaux sociaux \nplutôt qu'à l'affichage.",
+    "source": "kiyanza_cahier_des_charges_ia.pdf",
+    "document": "Cahier des charges IA",
+    "chunk_id": "chunk_0036"
+  },
+  {
+    "section": "4.5. Analyse des performances marketing",
+    "text": "(après campagne)  \nUne fois la campagne lancée, cette brique transforme les données réelles collectées en \ninformations compréhensibles : mesure des indicateurs clés (KPI) par rapport aux objectifs, \n/9  \n  \n5 \n  \nidentification des canaux et actions les plus efficaces, comparaison avec les objectifs initiaux, \net analyse du comportement de l'audience.  \nUtilisateurs concernés  Responsables marketing et de communication en phase de suivi de campagne.   \nDonnées en entrée  Données de performance renseignées ou connectées par l'utilisateur (statistiques des \nplateformes utilisées, données de scan QR Code, retours terrain, etc.).   \nRésultat produit par l'IA  Un bilan de campagne clair indiquant les résultats obtenus, les écarts avec les objectifs, et \nles points forts / points faibles identifiés.  \nRègles  de  gestion  /  \nconditions  \nL'analyse doit toujours se référer aux objectifs définis au départ de la campagne (étape \n4.2) pour rester pertinente ; elle doit signaler les données manquantes plutôt que de les \nestimer silencieusement.  \nExemple  concret  \nd'utilisation  \nAprès la campagne de fêtes, l'IA indique que les réseaux sociaux ont généré deux fois plus \nd'engagement que l'affichage, conformément à la simulation initiale.",
+    "source": "kiyanza_cahier_des_charges_ia.pdf",
+    "document": "Cahier des charges IA",
+    "chunk_id": "chunk_0037"
+  },
+  {
+    "section": "4.6. Génération de recommandations marketing",
+    "text": "personnalisées  \nEn s'appuyant sur les résultats d'une campagne et le contexte de l'entreprise, l'IA identifie des \nopportunités d'amélioration et propose des actions concrètes : recommandations stratégiques, \nalertes sur les points à ajuster, anticipation des tendances et opportunités futures.  \nUtilisateurs concernés  Entreprises souhaitant améliorer leurs campagnes futures.  \nDonnées en entrée  Le bilan de performance produit à l'étape 4.5 ; l'historique des campagnes précédentes de \nl'entreprise.  \nRésultat produit par l'IA  Une liste de recommandations concrètes, hiérarchisées, formulées en langage simple et \ndirectement applicables.  \nRègles  de  gestion  /  \nconditions  \nChaque recommandation doit être justifiée par une donnée ou une observation concrète, \nafin que l'utilisateur comprenne pourquoi elle est proposée.  \nExemple  concret  \nd'utilisation  \nL'IA recommande de renforcer la présence sur Instagram pour la prochaine campagne, en \ns'appuyant sur le meilleur taux d'engagement observé sur ce canal.",
+    "source": "kiyanza_cahier_des_charges_ia.pdf",
+    "document": "Cahier des charges IA",
+    "chunk_id": "chunk_0038"
+  },
+  {
+    "section": "4.7. Monitoring intelligent des diffusions radio",
+    "text": "Ce module surveille automatiquement la diffusion réelle des spots publicitaires sur les flux \nradio (et à terme télévision). Il connaît le planning prévu de la campagne, écoute et analyse le \nflux audio, détecte automatiquement le passage du spot, compare l' heure réelle de diffusion à \nl'heure prévue, et génère un rapport de conformité.  \nUtilisateurs concernés  Entreprises ayant acheté des espaces publicitaires radio ; responsables souhaitant vérifier \nle respect des contrats de diffusion.  \nDonnées en entrée  Le planning de diffusion prévu (fourni par l'entreprise ou son partenaire média) ; le flux \naudio en direct de la station radio concernée.  \n/9  \n  \n6 \n  \nRésultat produit par l'IA  Un rapport de conformité indiquant, pour chaque diffusion prévue, si le spot a été diffusé, \nà quelle heure réellement, et l'écart éventuel avec l'heure prévue.  \nRègles  de  gestion  /  \nconditions  \nLa détection doit fonctionner même en cas de qualité audio variable ; toute diffusion non \ndétectée ou avec un écart important doit être clairement signalée à l'utilisateur, sans fausse \nalerte excessive.  \nExemple  concret  \nd'utilisation  \nUn spot prévu à 8h05 sur une radio de Douala est détecté à 8h12 ; le rapport signale un \ndécalage de 7 minutes.",
+    "source": "kiyanza_cahier_des_charges_ia.pdf",
+    "document": "Cahier des charges IA",
+    "chunk_id": "chunk_0039"
+  },
+  {
+    "section": "5. Fonctionnalité connexe",
+    "text": ": intelligence de localisation (QR Codes)  \nBien qu'elle repose avant tout sur la collecte de données plutôt que sur un traitement IA \ncomplexe, cette fonctionnalité alimente directement les modules d'analyse (4.5) et de \nrecommandation (4.6) : chaque QR Code affiché en un lieu donné permet de savoir combien \nde personnes ont interagi à cet endroit précis. L'IA utilise ces données pour indiquer à \nl'entreprise où renforcer sa présence, quels emplacements sont peu performants, et comment \nadapter son ciblage géographique.",
+    "source": "kiyanza_cahier_des_charges_ia.pdf",
+    "document": "Cahier des charges IA",
+    "chunk_id": "chunk_0040"
+  },
+  {
+    "section": "6. Exigences non fonctionnelles",
+    "text": "6.1 Compréhensibilité et confiance  \n● Toutes les réponses, estimations et recommandations de l'IA doivent être rédigées en \nfrançais clair, sans jargon technique inutile.  \n● L'IA doit pouvoir expliquer, sur demande, pourquoi elle propose telle recommandation \nou telle estimation (transparence minimale).  \n● Les résultats de simulation doivent toujours être présentés comme des estimations, \njamais comme des certitudes.  \n6.2 Performance  \n● Le temps de réponse de l'assistant conversationnel doit rester perceptible comme rapide pour \nl'utilisateur (quelques secondes maximum en usage normal).  \n● La génération d'un plan marketing ou d'une simulation de campagne doit rester compatible \navec un usage fluide, sans blocage prolongé de l'interface.  \n6.3 Disponibilité et robustesse  \n● Le module IA doit fonctionner de façon fiable même avec une connexion internet de \nqualité variable, réalité fréquente sur les marchés visés.  \n/9  \n  \n7 \n  \n● En cas d'indisponibilité d'un service IA externe, la plateforme doit informer \nl'utilisateur plutôt que d'échouer silencieusement.  \n6.4 Sécurité et confidentialité des données  \n● Les données des entreprises (stratégies, budgets, résultats de campagnes) sont \nconfidentielles et ne doivent jamais être partagées entre entreprises clientes.  \n● Les échanges avec l'assistant IA doivent être stockés de manière sécurisée et \naccessibles uniquement à l'entreprise concernée et aux utilisateurs autorisés.  \n6.5 Adaptation au contexte local  \n● Les recommandations doivent tenir compte des réalités des marchés en \ndéveloppement : budgets limités, fa",
+    "source": "kiyanza_cahier_des_charges_ia.pdf",
+    "document": "Cahier des charges IA",
+    "chunk_id": "chunk_0041"
+  },
+  {
+    "section": "6. Exigences non fonctionnelles",
+    "text": "isée et \naccessibles uniquement à l'entreprise concernée et aux utilisateurs autorisés.  \n6.5 Adaptation au contexte local  \n● Les recommandations doivent tenir compte des réalités des marchés en \ndéveloppement : budgets limités, faible connectivité, absence d'équipe marketing \ndédiée.  \n● La langue de travail par défaut est le français.  \n6.6 Supervision humaine  \n● L'IA assiste la décision, elle ne la remplace pas : l'utilisateur reste libre de suivre ou \nd'ignorer une recommandation.  \n● Les décisions finales de lancement de campagne ou d'investissement restent à la \ncharge de l'entreprise.",
+    "source": "kiyanza_cahier_des_charges_ia.pdf",
+    "document": "Cahier des charges IA",
+    "chunk_id": "chunk_0042"
+  },
+  {
+    "section": "7. Contraintes et hypothèses",
+    "text": "7.1 Contraintes  \n● Budget de développement limité (contexte projet étudiant / startup en incubation).  \n● Ressources de calcul et d'hébergement à optimiser pour rester économiquement viable \nà l'échelle des entreprises ciblées.  \n● Connectivité internet parfois instable chez les utilisateurs finaux.  \n● Le module de monitoring radio dépend de la disponibilité et de la qualité des flux \naudio des stations partenaires.  \n7.2 Hypothèses de travail  \n● Les entreprises utilisatrices acceptent de renseigner ou connecter certaines données de \nleurs campagnes pour bénéficier de l'analyse et des recommandations.  \n/9  \n  \n8 \n  \n● Un historique de données (même limité) est disponible pour affiner progressivement \nles simulations et recommandations.  \n● Les stations radio partenaires autorisent l'écoute de leur flux à des fins de vérification \nde diffusion.",
+    "source": "kiyanza_cahier_des_charges_ia.pdf",
+    "document": "Cahier des charges IA",
+    "chunk_id": "chunk_0043"
+  },
+  {
+    "section": "8. Utilisateurs cibles de la partie IA",
+    "text": "Trois profils types illustrent les utilisateurs de la partie IA (détaillés dans le Document de \nCadrage) :  \nProfil  Ce qu'il attend de l'IA  \nDirectrice Marketing (entreprise disposant déjà de \ndonnées)  Centraliser l'analyse, obtenir une vision claire de l'efficacité des \ncampagnes, simuler avant d'investir, recevoir des \nrecommandations fiables.  \nChef Segment Client Retail  Concevoir des stratégies adaptées, réduire l'incertitude avant le \nlancement d'une offre, analyser rapidement les résultats.  \nResponsable Communication Digitale  Structurer ses campagnes via des plans générés automatiquement, \nsuivre les performances, obtenir des recommandations pour \naméliorer son impact.",
+    "source": "kiyanza_cahier_des_charges_ia.pdf",
+    "document": "Cahier des charges IA",
+    "chunk_id": "chunk_0044"
+  },
+  {
+    "section": "9. Livrables attendus",
+    "text": "côté Intelligence Artificielle  \n  \n● L'assistant IA conversationnel opérationnel (mode question et mode création de \ncampagne).  \n● Le module de génération de plan marketing et communication.  \n● Le module de simulation de campagne avant lancement.  \n● Le module d'analyse des performances post-campagne.  \n● Le module de génération de recommandations personnalisées.  \n● Le module de monitoring intelligent des diffusions radio.  \n● La documentation technique associée à chaque module (voir le document « \nArchitecture — Module Intelligence Artificielle »).",
+    "source": "kiyanza_cahier_des_charges_ia.pdf",
+    "document": "Cahier des charges IA",
+    "chunk_id": "chunk_0045"
+  },
+  {
+    "section": "10. Critères d'acceptation",
+    "text": "La partie IA sera considérée conforme au cahier des charges lorsque, pour chaque brique \nfonctionnelle décrite en section 4 :  \n/9  \n  \n9 \n  \n● La fonctionnalité produit un résultat cohérent avec les données fournies en entrée, \ndans un français clair et compréhensible.  \n● Les règles de gestion définies pour la fonctionnalité sont respectées (voir tableaux de \nla section 4).  \n● Un utilisateur non technique peut comprendre le résultat produit sans explication \nsupplémentaire du développeur.  \n● Les cas d'erreur ou d'information manquante sont gérés sans que l'application ne \nbloque ou ne réponde de façon incohérente.",
+    "source": "kiyanza_cahier_des_charges_ia.pdf",
+    "document": "Cahier des charges IA",
+    "chunk_id": "chunk_0046"
+  },
+  {
+    "section": "11. Glossaire",
+    "text": "Terme  Définition simple  \nIntelligence Artificielle (IA)  Ensemble de techniques informatiques permettant à un programme d'analyser des \ninformations, de répondre en langage naturel ou de faire des prédictions, comme \nle ferait un assistant humain spécialisé.  \nAssistant conversationnel  Programme capable de dialoguer avec l'utilisateur en langage courant (français), \nde comprendre ses questions et d'y répondre.  \nSimulation de campagne  Estimation, avant le lancement réel, des résultats probables d'une campagne \nmarketing.  \nKPI  (indicateur  clé  de  \nperformance)  \nChiffre ou mesure utilisé pour évaluer si un objectif marketing a été atteint (ex.  \nnombre de clics, de ventes, d'interactions).  \nRecommandation personnalisée  Conseil concret proposé par l'IA, adapté à la situation précise de l'entreprise \nconcernée.  \nMonitoring radio  Surveillance automatique de la diffusion réelle d'une publicité sur une station de \nradio.  \nQR Code  Code visuel scannable par smartphone qui redirige l'utilisateur vers une action \nprécise (site, formulaire, contact).",
+    "source": "kiyanza_cahier_des_charges_ia.pdf",
+    "document": "Cahier des charges IA",
+    "chunk_id": "chunk_0047"
+  }
+]

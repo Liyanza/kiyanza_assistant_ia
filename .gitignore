@@ -1,0 +1,22 @@
+# Secrets - ne JAMAIS versionner (identifiants de base de données)
+.env
+
+# Environnement virtuel Python
+venv/
+
+# Fichiers Python compilés
+__pycache__/
+*.pyc
+
+# Base vectorielle Chroma : fichiers binaires generes, regenerables via
+# scripts/03_generate_embeddings.py. Inutile de les versionner (poids
+# potentiellement lourd, et ce n'est pas du code source).
+output/chroma_db/
+
+# Cache local des modeles Hugging Face / sentence-transformers, si jamais
+# il se retrouve dans le dossier du projet
+.cache/
+
+# Fichiers systeme
+.DS_Store
+Thumbs.db
