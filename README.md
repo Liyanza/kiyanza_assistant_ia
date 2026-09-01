@@ -10,6 +10,9 @@ identifiants de base de données (`.env`) **ni** la base vectorielle
 générée (`output/chroma_db/`) — chacun doit les recréer localement après
 avoir cloné. Voici l'enchaînement complet, dans l'ordre :
 
+## Prérequis : Python 3.11.9 
+## rappel: la commande d'installation des bibliothèques requises : python -m pip install -r requirements.txt
+
 ```bash
 # 1. Cloner le dépôt
 git clone https://github.com/Liyanza/Chatbot.git kiyanza-chatbot

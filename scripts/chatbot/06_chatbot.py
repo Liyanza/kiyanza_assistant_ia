@@ -20,7 +20,9 @@ from llm_client import ask_llm
 from rag_retrieve import retrieve_relevant_chunks, format_chunks_for_prompt
 from text_to_sql import answer_with_sql
 
-SYSTEM_PROMPT_PATH = Path("scripts/system_prompt.md")
+SCRIPT_DIR = Path(__file__).resolve().parent
+
+SYSTEM_PROMPT_PATH = SCRIPT_DIR / "system_prompt.md"
 
 # Mots-cles simples indiquant qu'une question porte sur des donnees
 # chiffrees de campagnes, et necessite donc une requete SQL plutot que
