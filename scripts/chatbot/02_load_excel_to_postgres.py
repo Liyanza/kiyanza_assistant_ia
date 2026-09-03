@@ -19,7 +19,7 @@ from dotenv import load_dotenv
 from sqlalchemy import create_engine
 
 # --- Config -------------------------------------------------------------
-EXCEL_PATH = Path("data/kiyanza_cameroon_pme_marketing_20k_v2.xlsx")
+EXCEL_PATH = Path("data/kiyanza_cameroon_pme_marketing_20k_v3.xlsx")
 SHEET_NAME = "PME_Marketing_Dataset"
 TABLE_NAME = "campaigns"
 

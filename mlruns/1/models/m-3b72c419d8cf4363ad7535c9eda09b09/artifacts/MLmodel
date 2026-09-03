@@ -1,0 +1,22 @@
+artifact_path: file:///C:/Users/LOIC/Desktop/kiyanza_chatbot/mlruns/1/models/m-3b72c419d8cf4363ad7535c9eda09b09/artifacts
+flavors:
+  python_function:
+    data: model.ubj
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.xgboost
+    python_version: 3.11.9
+  xgboost:
+    code: null
+    data: model.ubj
+    model_class: xgboost.sklearn.XGBRegressor
+    model_format: ubj
+    xgb_version: 3.2.0
+mlflow_version: 3.15.2
+model_id: m-3b72c419d8cf4363ad7535c9eda09b09
+model_size_bytes: 830740
+model_uuid: m-3b72c419d8cf4363ad7535c9eda09b09
+prompts: null
+run_id: cf96446e96034b0fb4ff9cd9a7fe85b2
+utc_time_created: '2026-09-02 08:16:32.597235'

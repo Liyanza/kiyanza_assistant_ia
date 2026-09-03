@@ -161,12 +161,12 @@ def prepare(
     print("[5/5] Sauvegarde des fichiers de sortie...")
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-    train_path = os.path.join(OUTPUT_DIR, "train.parquet")
-    test_path = os.path.join(OUTPUT_DIR, "test.parquet")
+    train_path = os.path.join(OUTPUT_DIR, "train.pkl")
+    test_path = os.path.join(OUTPUT_DIR, "test.pkl")
     schema_path = os.path.join(OUTPUT_DIR, "feature_schema.json")
 
-    train_df.to_parquet(train_path, index=False)
-    test_df.to_parquet(test_path, index=False)
+    train_df.to_pickle(train_path)
+    test_df.to_pickle(test_path)
 
     schema = {
         "input_features_raw": INPUT_FEATURES,
