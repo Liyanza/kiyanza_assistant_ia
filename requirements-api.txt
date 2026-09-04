@@ -1,0 +1,12 @@
+# Dépendances de l'API de simulation Kiyanza uniquement (pas tout le projet).
+# Volontairement séparé de requirements.txt (qui contient aussi chromadb,
+# sentence-transformers, mlflow, etc. utilisés par le chatbot et
+# l'entraînement, inutiles ici et qui alourdiraient énormément l'image Docker).
+
+fastapi
+uvicorn[standard]
+pandas
+scikit-learn
+xgboost
+joblib
+requests

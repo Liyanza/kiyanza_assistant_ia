@@ -1,0 +1,164 @@
+{
+  "industry": [
+    "Agriculture & AgriTech",
+    "Beauty & Personal Care",
+    "Construction",
+    "Education",
+    "Fashion & Textiles",
+    "Financial Services",
+    "Food & Beverage",
+    "Healthcare",
+    "Hospitality & Tourism",
+    "Media & Creative",
+    "Professional Services",
+    "Real Estate",
+    "Renewable Energy",
+    "Retail & Commerce",
+    "Technology",
+    "Transport & Logistics"
+  ],
+  "company_size": [
+    "Large",
+    "Medium",
+    "Micro",
+    "Small"
+  ],
+  "city": [
+    "Bafoussam",
+    "Bamenda",
+    "Bertoua",
+    "Buea",
+    "Douala",
+    "Dschang",
+    "Ebolowa",
+    "Edea",
+    "Foumban",
+    "Garoua",
+    "Kribi",
+    "Kumba",
+    "Limbe",
+    "Maroua",
+    "Ngaoundere",
+    "Nkongsamba",
+    "Sangmelima",
+    "Yaounde"
+  ],
+  "campaign_objective": [
+    "App Adoption",
+    "Brand Awareness",
+    "Customer Engagement",
+    "Lead Generation",
+    "Product Launch",
+    "Sales",
+    "Website Traffic"
+  ],
+  "campaign_type": [
+    "Content Campaign",
+    "Email Campaign",
+    "Influencer Campaign",
+    "Paid Advertising",
+    "Search Campaign",
+    "Social Media Campaign",
+    "Video Campaign"
+  ],
+  "channel": [
+    "Display Advertising",
+    "Email Marketing",
+    "Messaging",
+    "Paid Search",
+    "Social Media",
+    "Video"
+  ],
+  "platform": [
+    "Email",
+    "Facebook",
+    "Google Ads",
+    "Google Display Network",
+    "Instagram",
+    "TikTok",
+    "WhatsApp Business",
+    "YouTube"
+  ],
+  "placement": [
+    "Display Network",
+    "Feed",
+    "In-Stream Video",
+    "Reels",
+    "Search Results",
+    "Stories"
+  ],
+  "target_age": [
+    "18-24",
+    "18-34",
+    "25-34",
+    "25-44",
+    "35-44",
+    "45-54",
+    "All Adults"
+  ],
+  "target_gender": [
+    "All",
+    "Female",
+    "Male"
+  ],
+  "customer_segment": [
+    "B2B",
+    "B2C",
+    "Families",
+    "Mass Market",
+    "Premium Customers",
+    "SMEs",
+    "Students",
+    "Young Professionals"
+  ],
+  "creative_format": [
+    "Banner",
+    "Carousel",
+    "Image",
+    "Long-form Video",
+    "Short Video",
+    "Story",
+    "Text and Image"
+  ],
+  "content_type": [
+    "Brand Story",
+    "Community",
+    "Educational",
+    "Product",
+    "Promotional",
+    "Seasonal Offer",
+    "Testimonial"
+  ],
+  "_platform_to_placement_mapping (pour dropdown en cascade)": {
+    "Facebook": [
+      "Feed",
+      "Stories",
+      "Reels"
+    ],
+    "Instagram": [
+      "Feed",
+      "Stories",
+      "Reels"
+    ],
+    "TikTok": [
+      "Feed",
+      "Reels"
+    ],
+    "YouTube": [
+      "In-Stream Video"
+    ],
+    "Google Ads": [
+      "Search Results",
+      "Display Network"
+    ],
+    "Google Display Network": [
+      "Display Network"
+    ],
+    "Email": [
+      "Feed"
+    ],
+    "WhatsApp Business": [
+      "Feed"
+    ]
+  }
+}

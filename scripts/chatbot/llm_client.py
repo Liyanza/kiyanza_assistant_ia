@@ -3,9 +3,15 @@ Petit utilitaire partage pour appeler le modele local via Ollama.
 Utilise par les scripts 04 (text-to-SQL), 05 (RAG) et 06 (chatbot).
 """
 
+import os
 import requests
 
-OLLAMA_URL = "http://localhost:11434/api/chat"
+# En local (chatbot lancé directement avec Python), OLLAMA_URL garde sa
+# valeur par défaut ci-dessous. En conteneur Docker, cette valeur est
+# surchargée via la variable d'environnement OLLAMA_URL (voir docker-compose.yml
+# du module de simulation), car "localhost" à l'intérieur d'un conteneur
+# désigne le conteneur lui-même, pas la machine hôte où tourne Ollama.
+OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://localhost:11434/api/chat")
 MODEL_NAME = "llama3.2"   # change ici si tu utilises un autre modele Ollama
 
 # Options qui limitent la charge de calcul, pour accelerer les reponses

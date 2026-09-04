@@ -1,0 +1,24 @@
+# Lance l'API de simulation Kiyanza dans un conteneur.
+#
+# Ollama n'est PAS inclus ici : il doit tourner sur la machine hôte
+# (comme pour le chatbot), le conteneur s'y connecte via host.docker.internal.
+#
+# Usage :
+#   docker compose up --build
+#
+# L'API sera accessible sur http://localhost:8001 (identique au lancement
+# sans Docker), Swagger sur http://localhost:8001/docs
+
+services:
+  simulation-api:
+    build: .
+    ports:
+      - "8001:8001"
+    environment:
+      # host.docker.internal fonctionne nativement avec Docker Desktop
+      # (Windows/Mac). Sous Linux, la ligne extra_hosts ci-dessous est
+      # nécessaire pour que ce nom soit résolu.
+      - OLLAMA_URL=http://host.docker.internal:11434/api/chat
+      - API_RELOAD=false
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

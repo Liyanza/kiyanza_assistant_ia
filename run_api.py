@@ -12,6 +12,7 @@ L'API sera accessible sur http://localhost:8001
 Documentation interactive (Swagger) : http://localhost:8001/docs
 """
 
+import os
 import sys
 from pathlib import Path
 
@@ -25,5 +26,11 @@ sys.path.insert(0, str(SIMULATION_DIR))
 
 import uvicorn  # noqa: E402  (import après modification de sys.path, volontaire)
 
+# Rechargement automatique à chaque modification du code : pratique en
+# développement local, à désactiver en conteneur Docker (API_RELOAD=false
+# dans docker-compose.yml) — le rechargement suppose un système de fichiers
+# qui change en direct, ce qui n'a pas de sens pour une image figée.
+RELOAD_ENABLED = os.environ.get("API_RELOAD", "true").lower() == "true"
+
 if __name__ == "__main__":
-    uvicorn.run("simulation_api:app", host="0.0.0.0", port=8001, reload=True)
+    uvicorn.run("simulation_api:app", host="0.0.0.0", port=8001, reload=RELOAD_ENABLED)
