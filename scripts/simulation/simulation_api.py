@@ -56,6 +56,7 @@ from simulation_text import generate_simulation_text
 from campaign_launch import launch_campaign
 from campaign_recommendations import generate_recommendations
 from platform_budget_scenarios import generate_multi_platform_scenarios, MIN_PLATFORMS, MAX_PLATFORMS
+from communication_plan import generate_communication_plan
 
 
 class CampaignScenario(BaseModel):
@@ -142,6 +143,13 @@ class MultiPlatformResponse(BaseModel):
     priority_metric: str
     scenarios: list[dict]
     recommended_strategy: str
+
+
+class CommunicationPlanResponse(BaseModel):
+    campaign_id: str
+    plan_text: str
+    generated_at: str
+    cached: bool
 
 
 @asynccontextmanager
@@ -300,4 +308,28 @@ def simulate_multi_platform(request: MultiPlatformRequest):
             status_code=503,
             detail=f"Le module de simulation n'est pas disponible : {e}",
         )
+    return result
+
+
+@app.get("/campaigns/{campaign_id}/plan", response_model=CommunicationPlanResponse)
+def get_communication_plan(campaign_id: str):
+    """
+    Renvoie le plan marketing et de communication (§4.3) d'une campagne déjà
+    lancée. Généré au premier appel (via le LLM), puis servi depuis le cache
+    en base pour les appels suivants (cached=true).
+    """
+    try:
+        result = generate_communication_plan(campaign_id)
+    except Exception as e:
+        raise HTTPException(
+            status_code=503,
+            detail=f"Le service de génération du plan est indisponible : {e}",
+        )
+
+    if result is None:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Aucune campagne trouvée avec l'identifiant '{campaign_id}'.",
+        )
+
     return result

@@ -84,17 +84,32 @@ CREATE TABLE IF NOT EXISTS {TABLE_NAME} (
 
     status VARCHAR(30) NOT NULL DEFAULT 'launched',
     launched_at TIMESTAMP NOT NULL DEFAULT now(),
-    end_date TIMESTAMP NOT NULL
+    end_date TIMESTAMP NOT NULL,
+
+    -- Plan marketing et de communication (§4.3), généré une seule fois à la
+    -- demande puis mis en cache ici — pas besoin de rappeler le LLM à
+    -- chaque consultation du plan.
+    communication_plan_text TEXT,
+    communication_plan_generated_at TIMESTAMP
 );
+"""
+
+# Migration idempotente : si la table existait déjà (créée avant l'ajout du
+# plan de communication), on ajoute les colonnes manquantes sans rien casser.
+ALTER_TABLE_SQL = f"""
+ALTER TABLE {TABLE_NAME} ADD COLUMN IF NOT EXISTS communication_plan_text TEXT;
+ALTER TABLE {TABLE_NAME} ADD COLUMN IF NOT EXISTS communication_plan_generated_at TIMESTAMP;
 """
 
 
 def create_table():
-    """Crée la table launched_campaigns si elle n'existe pas déjà.
-    Sans danger de la relancer plusieurs fois (IF NOT EXISTS)."""
+    """Crée la table launched_campaigns si elle n'existe pas déjà, et
+    ajoute les colonnes manquantes si elle existait dans une version
+    antérieure du schéma. Sans danger de le relancer plusieurs fois."""
     engine = get_engine()
     with engine.begin() as conn:
         conn.execute(text(CREATE_TABLE_SQL))
+        conn.execute(text(ALTER_TABLE_SQL))
 
 
 def generate_campaign_id() -> str:
@@ -160,3 +175,36 @@ def launch_campaign(scenario: dict, campaign_name: str, predictions: dict, tenan
         "launched_at": launched_at.isoformat(),
         "end_date": end_date.isoformat(),
     }
+
+
+def get_campaign_by_id(campaign_id: str) -> dict:
+    """
+    Récupère une campagne lancée par son campaign_id. Retourne None si elle
+    n'existe pas (§6.3 : à l'appelant de signaler clairement l'absence
+    plutôt que de planter).
+    """
+    engine = get_engine()
+    select_sql = text(f"SELECT * FROM {TABLE_NAME} WHERE campaign_id = :campaign_id")
+
+    with engine.connect() as conn:
+        row = conn.execute(select_sql, {"campaign_id": campaign_id}).mappings().first()
+
+    return dict(row) if row else None
+
+
+def save_communication_plan(campaign_id: str, plan_text: str) -> None:
+    """Enregistre le plan de communication généré pour une campagne, pour
+    ne pas avoir à le régénérer (appel LLM coûteux) à chaque consultation."""
+    engine = get_engine()
+    update_sql = text(f"""
+        UPDATE {TABLE_NAME}
+        SET communication_plan_text = :plan_text,
+            communication_plan_generated_at = :generated_at
+        WHERE campaign_id = :campaign_id
+    """)
+    with engine.begin() as conn:
+        conn.execute(update_sql, {
+            "campaign_id": campaign_id,
+            "plan_text": plan_text,
+            "generated_at": datetime.utcnow(),
+        })
