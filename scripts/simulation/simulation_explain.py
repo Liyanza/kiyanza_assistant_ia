@@ -149,6 +149,25 @@ def load_artifacts():
     return schema, models, train_df
 
 
+def predict_only(scenario: dict) -> dict:
+    """
+    Version légère de predict_and_explain : calcule uniquement les 4
+    prédictions, sans les facteurs explicatifs (pas d'appel à
+    compute_categorical_lift, l'opération la plus coûteuse).
+
+    Utile quand on doit tester beaucoup de scénarios alternatifs rapidement
+    (ex. le moteur de recommandations, qui compare ~20 variantes) et qu'on
+    n'a besoin de la justification détaillée que pour les quelques
+    alternatives finalement retenues.
+    """
+    schema, models, _ = load_artifacts()
+    encoded, _ = encode_scenario(scenario, schema)
+    return {
+        target: round(float(models[target].predict(encoded)[0]), 3)
+        for target in schema["target_columns"]
+    }
+
+
 def predict_and_explain(scenario: dict):
     """
     Pipeline complet : encode le scénario, prédit les 4 métriques, explique

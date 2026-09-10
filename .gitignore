@@ -8,7 +8,7 @@ venv/
 __pycache__/
 *.pyc
 
-data/simulation/*.parquet
+data/simulation/*.pkl
 
 # Base vectorielle Chroma : fichiers binaires generes, regenerables via
 # scripts/03_generate_embeddings.py. Inutile de les versionner (poids
