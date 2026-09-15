@@ -1,0 +1,3 @@
+from compliance_report import generate_pdf_report, generate_excel_report
+generate_pdf_report()
+generate_excel_report()
