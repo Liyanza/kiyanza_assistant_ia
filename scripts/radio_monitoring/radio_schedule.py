@@ -205,3 +205,33 @@ def get_entries_for_report(campaign_id: str = None, station_name: str = None) ->
     with engine.connect() as conn:
         rows = conn.execute(select_sql, params).mappings().all()
     return [dict(r) for r in rows]
+
+
+def get_entries(campaign_id: str = None, station_name: str = None) -> list:
+    """
+    Récupère TOUTES les diffusions (peu importe leur statut : pending,
+    scheduled, processing, completed, failed), filtrées par campagne et/ou
+    station, triées par heure prévue. Utile pour le suivi en temps réel
+    depuis l'API (contrairement à get_entries_for_report, qui ne renvoie
+    que celles déjà traitées, pour la génération de rapport).
+    """
+    engine = get_engine()
+    conditions = ["1=1"]
+    params = {}
+
+    if campaign_id:
+        conditions.append("campaign_id = :campaign_id")
+        params["campaign_id"] = campaign_id
+    if station_name:
+        conditions.append("station_name = :station_name")
+        params["station_name"] = station_name
+
+    where_clause = " AND ".join(conditions)
+    select_sql = text(f"""
+        SELECT * FROM {TABLE_NAME}
+        WHERE {where_clause}
+        ORDER BY planned_datetime ASC
+    """)
+    with engine.connect() as conn:
+        rows = conn.execute(select_sql, params).mappings().all()
+    return [dict(r) for r in rows]

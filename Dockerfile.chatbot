@@ -1,0 +1,32 @@
+# Image de l'API chatbot Kiyanza (fonctionnalité 4.1.A "Poser une question").
+#
+# Ollama et PostgreSQL restent sur la machine hôte (pas dans ce conteneur),
+# comme pour les autres services du projet. La base vectorielle Chroma
+# (output/chroma_db) est montée en volume plutôt que copiée dans l'image :
+# elle peut être volumineuse et évoluer sans qu'il faille reconstruire
+# l'image à chaque mise à jour de la base de connaissances.
+
+FROM python:3.11-slim
+
+WORKDIR /app
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY requirements-chatbot.txt .
+RUN pip install --no-cache-dir -r requirements-chatbot.txt
+
+COPY run_chatbot_api.py .
+COPY scripts/chatbot/chatbot.py ./scripts/chatbot/chatbot.py
+COPY scripts/chatbot/chatbot_api.py ./scripts/chatbot/chatbot_api.py
+COPY scripts/chatbot/rag_retrieve.py ./scripts/chatbot/rag_retrieve.py
+COPY scripts/chatbot/text_to_sql.py ./scripts/chatbot/text_to_sql.py
+COPY scripts/chatbot/llm_client.py ./scripts/chatbot/llm_client.py
+COPY scripts/chatbot/system_prompt.md ./scripts/chatbot/system_prompt.md
+
+EXPOSE 8000
+
+ENV API_RELOAD=false
+
+CMD ["python", "run_chatbot_api.py"]

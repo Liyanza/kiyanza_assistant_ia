@@ -1,31 +1,51 @@
-# Lance l'API de simulation Kiyanza dans un conteneur.
+# Lance les 3 fonctionnalités IA de Kiyanza dans des conteneurs séparés.
 #
-# Ollama ET PostgreSQL ne sont PAS inclus ici : ils tournent sur la machine
-# hôte (comme pour le chatbot), le conteneur s'y connecte via
+# Services externes qui restent sur la machine hôte (pas dans Docker) :
+# Ollama, PostgreSQL, Redis. Tous les conteneurs s'y connectent via
 # host.docker.internal.
 #
 # Usage :
 #   docker compose up --build
 #
-# L'API sera accessible sur http://localhost:8001 (identique au lancement
-# sans Docker), Swagger sur http://localhost:8001/docs
+# URLs :
+#   Chatbot          -> http://localhost:8000/docs
+#   Simulation        -> http://localhost:8001/docs
+#   Monitoring radio  -> http://localhost:8002/docs
 
 services:
+
+  # --- Chatbot (4.1.A) -------------------------------------------------
+  chatbot-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.chatbot
+    ports:
+      - "8000:8000"
+    environment:
+      - OLLAMA_URL=http://host.docker.internal:11434/api/chat
+      - API_RELOAD=false
+      - DB_HOST=host.docker.internal
+      - DB_PORT=${DB_PORT}
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+    volumes:
+      # Base vectorielle Chroma déjà construite en local (étape 3 du
+      # pipeline chatbot) — jamais reconstruite dans l'image elle-même.
+      - ./output/chroma_db:/app/output/chroma_db:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  # --- Simulation de campagne (4.4) ------------------------------------
   simulation-api:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
       - "8001:8001"
     environment:
-      # host.docker.internal fonctionne nativement avec Docker Desktop
-      # (Windows/Mac). Sous Linux, la ligne extra_hosts ci-dessous est
-      # nécessaire pour que ce nom soit résolu.
       - OLLAMA_URL=http://host.docker.internal:11434/api/chat
       - API_RELOAD=false
-      # Connexion à PostgreSQL sur la machine hôte (utilisé par
-      # /campaigns/launch). DB_NAME/DB_USER/DB_PASSWORD sont lus depuis ton
-      # fichier .env local (jamais commité sur GitHub) — seul DB_HOST est
-      # forcé à host.docker.internal ici, car "localhost" dans le conteneur
-      # désignerait le conteneur lui-même, pas ta machine.
       - DB_HOST=host.docker.internal
       - DB_PORT=${DB_PORT}
       - DB_NAME=${DB_NAME}
@@ -33,3 +53,71 @@ services:
       - DB_PASSWORD=${DB_PASSWORD}
     extra_hosts:
       - "host.docker.internal:host-gateway"
+
+  # --- Monitoring radio (4.7) : API -------------------------------------
+  radio-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.radio
+    ports:
+      - "8002:8002"
+    environment:
+      - DB_HOST=host.docker.internal
+      - DB_PORT=${DB_PORT}
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - API_RELOAD=false
+    volumes:
+      # Les spots uploadés et les rapports générés doivent survivre au
+      # redémarrage du conteneur, et être accessibles au worker Celery
+      # (conteneur séparé) — d'où ce volume partagé plutôt qu'un stockage
+      # interne au conteneur.
+      - radio_data:/app/scripts/radio_monitoring/uploaded_spots
+      - radio_reports:/app/scripts/radio_monitoring/reports
+      - radio_captures:/app/scripts/radio_monitoring/captures
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  # --- Monitoring radio (4.7) : worker Celery ---------------------------
+  radio-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.radio
+    command: ["sh", "-c", "cd scripts/radio_monitoring && celery -A celery_app worker --loglevel=info"]
+    environment:
+      - DB_HOST=host.docker.internal
+      - DB_PORT=${DB_PORT}
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - REDIS_URL=redis://host.docker.internal:6379/0
+    volumes:
+      - radio_data:/app/scripts/radio_monitoring/uploaded_spots
+      - radio_reports:/app/scripts/radio_monitoring/reports
+      - radio_captures:/app/scripts/radio_monitoring/captures
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  # --- Monitoring radio (4.7) : Celery Beat (scheduler) -----------------
+  radio-beat:
+    build:
+      context: .
+      dockerfile: Dockerfile.radio
+    command: ["sh", "-c", "cd scripts/radio_monitoring && celery -A celery_app beat --loglevel=info"]
+    environment:
+      - DB_HOST=host.docker.internal
+      - DB_PORT=${DB_PORT}
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - REDIS_URL=redis://host.docker.internal:6379/0
+    volumes:
+      - radio_data:/app/scripts/radio_monitoring/uploaded_spots
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+volumes:
+  radio_data:
+  radio_reports:
+  radio_captures:

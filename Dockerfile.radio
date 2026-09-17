@@ -1,0 +1,32 @@
+# Image du monitoring radio Kiyanza (fonctionnalité 4.7). Utilisée pour
+# TROIS services différents dans docker-compose.yml (radio-api, radio-worker,
+# radio-beat) — même image, seule la commande de démarrage change, pour
+# éviter de dupliquer l'installation des dépendances trois fois.
+#
+# ffmpeg est installé ici via apt (logiciel système, pas un paquet pip) —
+# indispensable pour la capture des flux radio (radio_capture.py).
+#
+# PostgreSQL, Redis et Ollama (indirect, via l'API chatbot) restent sur la
+# machine hôte.
+
+FROM python:3.11-slim
+
+WORKDIR /app
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ffmpeg build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY requirements-radio.txt .
+RUN pip install --no-cache-dir -r requirements-radio.txt
+
+COPY run_radio_api.py .
+COPY scripts/radio_monitoring/ ./scripts/radio_monitoring/
+
+EXPOSE 8002
+
+ENV API_RELOAD=false
+
+# Commande par défaut = l'API. Les services worker/beat de docker-compose.yml
+# la surchargent avec leur propre "command:".
+CMD ["python", "run_radio_api.py"]

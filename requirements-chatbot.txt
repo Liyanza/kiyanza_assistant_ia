@@ -1,0 +1,13 @@
+# Dépendances de l'API chatbot uniquement (voir requirements-api.txt et
+# requirements-radio.txt pour les autres services — volontairement séparés
+# pour garder chaque image Docker aussi légère que possible).
+
+fastapi
+uvicorn[standard]
+chromadb
+sentence-transformers
+sqlalchemy
+psycopg2-binary
+python-dotenv
+pandas
+requests

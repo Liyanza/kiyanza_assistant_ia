@@ -1,6 +1,5 @@
-# Garde le contexte envoyé au démon Docker léger et rapide, même si le
-# Dockerfile ne fait que des COPY sélectifs (le contexte entier est quand
-# même lu/compressé avant l'envoi).
+# Garde le contexte envoyé au démon Docker léger et rapide, même si les
+# Dockerfiles ne font que des COPY sélectifs.
 
 venv/
 __pycache__/
@@ -11,9 +10,17 @@ mlflow.db
 chroma_db/
 *.xlsx
 *.csv
-data/simulation/*.pkl.bak
+
+# Sous-dossiers générés/de test du monitoring radio : pas du code source,
+# inutiles dans l'image (et parfois volumineux — fichiers audio).
+scripts/radio_monitoring/test_audio/
+scripts/radio_monitoring/captures/
+scripts/radio_monitoring/reports/
+scripts/radio_monitoring/uploaded_spots/
+scripts/radio_monitoring/__pycache__/
+
 scripts/chatbot/__pycache__/
 scripts/simulation/__pycache__/
 
 # On garde volontairement data/simulation/ et models/simulation/ (nécessaires
-# au build), donc pas de règle générale excluant data/ ou models/ ici.
+# au build de l'image de simulation), donc pas de règle générale les excluant.

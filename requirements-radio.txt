@@ -1,0 +1,16 @@
+# Dépendances du monitoring radio (API + worker Celery + beat).
+# ffmpeg lui-même n'est PAS ici : c'est un logiciel système, installé via
+# apt-get dans le Dockerfile, pas une bibliothèque Python.
+
+fastapi
+uvicorn[standard]
+python-multipart
+celery
+redis
+sqlalchemy
+psycopg2-binary
+python-dotenv
+numpy
+scipy
+reportlab
+openpyxl
