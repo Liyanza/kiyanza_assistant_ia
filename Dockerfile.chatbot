@@ -1,10 +1,11 @@
 # Image de l'API chatbot Kiyanza (fonctionnalité 4.1.A "Poser une question").
 #
-# Ollama et PostgreSQL restent sur la machine hôte (pas dans ce conteneur),
-# comme pour les autres services du projet. La base vectorielle Chroma
-# (output/chroma_db) est montée en volume plutôt que copiée dans l'image :
-# elle peut être volumineuse et évoluer sans qu'il faille reconstruire
-# l'image à chaque mise à jour de la base de connaissances.
+# PostgreSQL reste hors du conteneur. La base vectorielle Chroma
+# (output/chroma_db) est ici COPIÉE dans l'image (et non montée en volume) :
+# c'est le choix le plus simple pour un premier déploiement sur Render, qui
+# n'a pas d'équivalent gratuit à un volume Docker local. Contrepartie : toute
+# mise à jour de la base de connaissances nécessite de reconstruire l'image
+# (un simple git push suffit si le déploiement est connecté au dépôt).
 
 FROM python:3.11-slim
 
@@ -24,6 +25,7 @@ COPY scripts/chatbot/rag_retrieve.py ./scripts/chatbot/rag_retrieve.py
 COPY scripts/chatbot/text_to_sql.py ./scripts/chatbot/text_to_sql.py
 COPY scripts/chatbot/llm_client.py ./scripts/chatbot/llm_client.py
 COPY scripts/chatbot/system_prompt.md ./scripts/chatbot/system_prompt.md
+COPY output/chroma_db/ ./output/chroma_db/
 
 EXPOSE 8000
 

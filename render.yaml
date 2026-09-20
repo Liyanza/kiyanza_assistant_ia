@@ -1,0 +1,128 @@
+# Blueprint Render — déploie en une fois les 3 fonctionnalités IA de
+# Kiyanza (chatbot, simulation, monitoring radio) + PostgreSQL + Redis.
+#
+# Usage : sur render.com, "New +" > "Blueprint", connecte ce dépôt GitHub.
+# Render lit ce fichier et propose de créer tous les services d'un coup.
+#
+# Contrairement à Docker Compose (usage local), Render ne partage pas de
+# réseau "host.docker.internal" : chaque service se connecte à la base de
+# données et à Redis via les informations que Render fournit automatiquement
+# (fromDatabase / fromService ci-dessous), sans rien coder en dur.
+#
+# Secret à renseigner manuellement dans le tableau de bord Render au premier
+# déploiement (jamais commité ici, voir "sync: false") : GEMINI_API_KEY.
+
+databases:
+  - name: kiyanza-db
+    plan: free
+    databaseName: kiyanza
+    user: kiyanza
+
+envVarGroups:
+  - name: kiyanza-secrets
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false   # Render demandera la valeur dans son tableau de bord
+
+  - name: kiyanza-db-vars
+    envVars:
+      - key: DB_HOST
+        fromDatabase:
+          name: kiyanza-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: kiyanza-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: kiyanza-db
+          property: database
+      - key: DB_USER
+        fromDatabase:
+          name: kiyanza-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: kiyanza-db
+          property: password
+
+services:
+  # --- Redis (broker Celery pour le monitoring radio) -------------------
+  - type: keyvalue
+    name: kiyanza-redis
+    plan: free
+    ipAllowList: []
+
+  # --- Chatbot (4.1.A) ---------------------------------------------------
+  - type: web
+    name: kiyanza-chatbot
+    runtime: docker
+    dockerfilePath: ./Dockerfile.chatbot
+    dockerContext: .
+    plan: starter
+    envVars:
+      - fromGroup: kiyanza-secrets
+      - fromGroup: kiyanza-db-vars
+      - key: API_RELOAD
+        value: "false"
+    healthCheckPath: /health
+
+  # --- Simulation de campagne (4.4) --------------------------------------
+  - type: web
+    name: kiyanza-simulation
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: starter
+    envVars:
+      - fromGroup: kiyanza-secrets
+      - fromGroup: kiyanza-db-vars
+      - key: API_RELOAD
+        value: "false"
+    healthCheckPath: /health
+
+  # --- Monitoring radio (4.7) : API ---------------------------------------
+  - type: web
+    name: kiyanza-radio-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile.radio
+    dockerContext: .
+    plan: starter
+    envVars:
+      - fromGroup: kiyanza-db-vars
+      - key: API_RELOAD
+        value: "false"
+    healthCheckPath: /health
+
+  # --- Monitoring radio (4.7) : worker Celery ------------------------------
+  - type: worker
+    name: kiyanza-radio-worker
+    runtime: docker
+    dockerfilePath: ./Dockerfile.radio
+    dockerContext: .
+    dockerCommand: "sh -c 'cd scripts/radio_monitoring && celery -A celery_app worker --loglevel=info'"
+    plan: starter
+    envVars:
+      - fromGroup: kiyanza-db-vars
+      - key: REDIS_URL
+        fromService:
+          name: kiyanza-redis
+          type: keyvalue
+          property: connectionString
+
+  # --- Monitoring radio (4.7) : Celery Beat (scheduler) ---------------------
+  - type: worker
+    name: kiyanza-radio-beat
+    runtime: docker
+    dockerfilePath: ./Dockerfile.radio
+    dockerContext: .
+    dockerCommand: "sh -c 'cd scripts/radio_monitoring && celery -A celery_app beat --loglevel=info'"
+    plan: starter
+    envVars:
+      - fromGroup: kiyanza-db-vars
+      - key: REDIS_URL
+        fromService:
+          name: kiyanza-redis
+          type: keyvalue
+          property: connectionString

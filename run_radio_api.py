@@ -26,6 +26,7 @@ sys.path.insert(0, str(RADIO_DIR))
 import uvicorn  # noqa: E402
 
 RELOAD_ENABLED = os.environ.get("API_RELOAD", "true").lower() == "true"
+PORT = int(os.environ.get("PORT", 8002))
 
 if __name__ == "__main__":
-    uvicorn.run("radio_monitoring_api:app", host="0.0.0.0", port=8002, reload=RELOAD_ENABLED)
+    uvicorn.run("radio_monitoring_api:app", host="0.0.0.0", port=PORT, reload=RELOAD_ENABLED)
