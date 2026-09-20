@@ -1,53 +1,65 @@
 """
-Petit utilitaire partage pour appeler le modele local via Ollama.
-Utilise par les scripts 04 (text-to-SQL), 05 (RAG) et 06 (chatbot).
+Petit utilitaire partage pour appeler le modele via l'API Gemini de Google.
+
+Remplace l'ancienne version basee sur Ollama local : meme interface
+publique (ask_llm), donc aucun autre fichier du projet n'a besoin d'etre
+modifie (chatbot.py, simulation_text.py, communication_plan.py continuent
+d'appeler ask_llm(system_prompt, user_message, temperature) exactement pareil).
+
+Pourquoi ce changement : Ollama necessite une machine avec suffisamment de
+RAM tournant en permanence (contrainte forte pour l'hebergement en ligne).
+L'API Gemini est gratuite jusqu'a 1000 requetes/jour, et tres bon marche
+au-dela (~0,10$ pour 1 million de tokens sur le modele le moins cher) —
+voir https://ai.google.dev/gemini-api/docs/pricing pour les tarifs a jour.
+
+Pre-requis : une cle API gratuite sur https://aistudio.google.com/apikey,
+a placer dans le fichier .env sous le nom GEMINI_API_KEY.
 """
 
 import os
 import requests
+from dotenv import load_dotenv
 
-# En local (chatbot lancé directement avec Python), OLLAMA_URL garde sa
-# valeur par défaut ci-dessous. En conteneur Docker, cette valeur est
-# surchargée via la variable d'environnement OLLAMA_URL (voir docker-compose.yml
-# du module de simulation), car "localhost" à l'intérieur d'un conteneur
-# désigne le conteneur lui-même, pas la machine hôte où tourne Ollama.
-OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://localhost:11434/api/chat")
-MODEL_NAME = "llama3.2"   # change ici si tu utilises un autre modele Ollama
+load_dotenv()
 
-# Options qui limitent la charge de calcul, pour accelerer les reponses
-# sur une machine sans GPU dedie :
-#   - num_ctx : taille de la fenetre de contexte prise en compte (plus
-#     petit = plus rapide, mais moins de contexte pris en compte)
-#   - num_predict : nombre maximum de tokens generes en reponse
-#   - keep_alive : garde le modele charge en memoire entre deux appels,
-#     pour eviter de le recharger a chaque question (gros gain de temps)
-DEFAULT_OPTIONS = {
-    "num_ctx": 2048,
-    "num_predict": 400,
-}
-KEEP_ALIVE = "30m"
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
+
+# Modele par defaut : rapide et bon marche (eligible au niveau gratuit).
+# Modifiable via la variable d'environnement GEMINI_MODEL si besoin, sans
+# toucher au code. Verifie le nom exact des modeles disponibles sur
+# https://ai.google.dev/gemini-api/docs/models si celui-ci venait a changer.
+GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-flash-latest")
+
+GEMINI_URL = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent"
 
 
 def ask_llm(system_prompt: str, user_message: str, temperature: float = 0.3) -> str:
     """
-    Envoie un system prompt + un message utilisateur au modele local
-    via l'API Ollama, et renvoie le texte de la reponse.
+    Envoie un system prompt + un message utilisateur a l'API Gemini, et
+    renvoie le texte de la reponse. Meme signature que l'ancienne version
+    Ollama : aucun appelant n'a besoin de changer.
     """
+    if not GEMINI_API_KEY:
+        raise RuntimeError(
+            "GEMINI_API_KEY n'est pas definie. Ajoute-la a ton fichier .env "
+            "(cle gratuite sur https://aistudio.google.com/apikey)."
+        )
+
     payload = {
-        "model": MODEL_NAME,
-        "messages": [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_message},
-        ],
-        "stream": False,
-        "keep_alive": KEEP_ALIVE,
-        "options": {**DEFAULT_OPTIONS, "temperature": temperature},
+        "system_instruction": {"parts": [{"text": system_prompt}]},
+        "contents": [{"parts": [{"text": user_message}]}],
+        "generationConfig": {"temperature": temperature},
+    }
+    headers = {
+        "Content-Type": "application/json",
+        "x-goog-api-key": GEMINI_API_KEY,
     }
 
-    # Timeout genereux : le tout premier appel doit charger le modele en
-    # memoire (peut prendre 1-2 minutes sur CPU), les appels suivants sont
-    # plus rapides grace a keep_alive.
-    response = requests.post(OLLAMA_URL, json=payload, timeout=300)
+    response = requests.post(GEMINI_URL, json=payload, headers=headers, timeout=60)
     response.raise_for_status()
     data = response.json()
-    return data["message"]["content"]
+
+    try:
+        return data["candidates"][0]["content"]["parts"][0]["text"]
+    except (KeyError, IndexError):
+        raise RuntimeError(f"Reponse Gemini inattendue (pas de texte trouve) : {data}")

@@ -22,7 +22,7 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - OLLAMA_URL=http://host.docker.internal:11434/api/chat
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
       - API_RELOAD=false
       - DB_HOST=host.docker.internal
       - DB_PORT=${DB_PORT}
@@ -44,7 +44,7 @@ services:
     ports:
       - "8001:8001"
     environment:
-      - OLLAMA_URL=http://host.docker.internal:11434/api/chat
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
       - API_RELOAD=false
       - DB_HOST=host.docker.internal
       - DB_PORT=${DB_PORT}
