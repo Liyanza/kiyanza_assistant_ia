@@ -1,215 +1,225 @@
-# Kiyanza chatbot — Assistant IA marketing (mode « Poser une question »)
+# Kiyanza — Assistant IA Marketing pour les Marchés Émergents
 
-Chatbot combinant RAG (documents de cadrage) + text-to-SQL (données de
-campagnes) + LLM local gratuit (Ollama), pour le projet Kiyanza.
+Plateforme d'intelligence artificielle marketing conçue pour les PME des marchés émergents (Cameroun), permettant de concevoir, simuler, lancer et suivre des campagnes marketing digitales et radio — sans nécessiter d'équipe marketing dédiée.
 
-## Démarrage rapide (cloner et lancer depuis zéro)
+Projet réalisé dans le cadre de l'**Orange Digital Center Summer Challenge** par l'équipe **Cosmos**.
 
-Ce dépôt ne contient **ni** l'environnement virtuel (`venv/`) **ni** tes
-identifiants de base de données (`.env`) **ni** la base vectorielle
-générée (`output/chroma_db/`) — chacun doit les recréer localement après
-avoir cloné. Voici l'enchaînement complet, dans l'ordre :
+## Équipe
 
-## Prérequis : Python 3.11.9 
-## rappel: la commande d'installation des bibliothèques requises : python -m pip install -r requirements.txt
+| Membre | Rôle |
+|---|---|
+| Kanga Cedric | Chef de Projet |
+| Nna Aristide | Designer UI/UX |
+| Leane Yvanna (Ntakeu Leane) | Développeuse Mobile |
+| Bitang Baudouin | Développeur Web |
+| Foumegni Loic | IoT | Data/IA Scientist |
+| Ambo'o Junette | Data / IA Scientist |
+
+
+## Sommaire
+
+- [Vue d'ensemble](#vue-densemble)
+- [Fonctionnalités IA](#fonctionnalités-ia)
+- [Architecture](#architecture)
+- [Structure du projet](#structure-du-projet)
+- [Installation](#installation)
+- [Utilisation en local](#utilisation-en-local)
+- [Déploiement Docker](#déploiement-docker)
+- [Déploiement Render](#déploiement-render)
+- [Référence des API](#référence-des-api)
+- [Roadmap](#roadmap)
+
+## Vue d'ensemble
+
+Kiyanza centralise, au sein d'une seule plateforme, la conception de campagnes, leur simulation avant lancement, le suivi de leurs performances, la génération de recommandations et le contrôle de leur diffusion réelle sur le terrain (radio). L'Intelligence Artificielle est le moteur central de cette promesse.
+
+Trois modules IA sont opérationnels à ce jour, chacun exposé via sa propre API :
+
+| Module | Cahier des charges | Port (local) |
+|---|---|---|
+| **Chatbot** — "Poser une question" | §4.1.A | 8000 |
+| **Simulation de campagne** — "Simuler avant de dépenser" | §4.4 | 8001 |
+| **Monitoring radio** — diffusions publicitaires | §4.7 | 8002 |
+
+## Fonctionnalités IA
+
+### 1. Chatbot marketing (§4.1.A)
+
+Un espace de discussion libre où l'utilisateur pose toute question liée au marketing et à la communication. Combine :
+- **RAG** (Retrieval-Augmented Generation) sur une base de connaissances marketing (ChromaDB + embeddings multilingues)
+- **Text-to-SQL** : traduit une question chiffrée ("quel canal a le meilleur ROAS ?") en requête SQL sur les données de campagnes
+- **LLM** (Google Gemini) pour la rédaction de la réponse finale en français clair
+
+### 2. Simulation de campagne (§4.4)
+
+Avant de dépenser un budget réel, le module prédit les performances attendues d'une campagne et guide l'utilisateur vers de meilleures décisions.
+
+- **Prédiction chiffrée** : reach, taux d'engagement, taux de clic (CTR) et retour sur investissement (ROAS), via 4 modèles XGBoost entraînés sur un jeu de données de 20 000 campagnes camerounaises
+- **Explicabilité** : chaque prédiction est justifiée par comparaison aux moyennes historiques par catégorie (secteur, canal, plateforme...) — approche "rules engine", pas de boîte noire
+- **Génération de texte en français clair** (Gemini) : présente toujours le résultat comme une estimation, jamais une garantie
+- **Recommandations d'ajustement** : teste automatiquement des alternatives réalistes (budget, plateforme, tranche d'âge, format créatif) et ne suggère un changement que s'il apporte un gain significatif
+- **Scénarios multi-plateformes** : pour un budget total et plusieurs plateformes envisagées, compare différentes répartitions budgétaires et recommande la meilleure selon l'objectif de la campagne
+- **Lancement de campagne** : enregistre la campagne validée par l'utilisateur, avec un instantané de sa simulation (pour comparaison future avec les résultats réels)
+- **Plan marketing et de communication** (§4.3) : génère, pour une campagne lancée, une proposition de stratégie, un calendrier d'actions et des canaux complémentaires adaptés à une petite structure
+
+### 3. Monitoring radio (§4.7)
+
+Surveille automatiquement la diffusion réelle des spots publicitaires sur les flux radio en ligne.
+
+- **Détection par empreinte acoustique** : compare le spot de référence fourni par l'utilisateur au flux radio capturé, par extraction et comparaison de coefficients MFCC (robuste au bruit, sans dépendance lourde de type librosa/numba)
+- **Capture de flux** : enregistrement du flux radio en direct via `ffmpeg`
+- **Planification automatique** : Celery + Celery Beat déclenchent la capture et l'analyse aux heures prévues, avec une marge de tolérance
+- **Rapport de conformité** (PDF et Excel) : pour chaque diffusion prévue, indique si le spot est passé, à quelle heure réelle, et l'écart avec l'heure prévue
+
+## Architecture
+
+- **Backend IA** : Python, FastAPI
+- **Modèles prédictifs** : scikit-learn, XGBoost
+- **LLM génératif** : Google Gemini API
+- **RAG** : ChromaDB, Sentence-Transformers
+- **Base de données** : PostgreSQL (SQLAlchemy)
+- **Tâches asynchrones / planification** : Celery, Celery Beat, Redis
+- **Traitement audio** : ffmpeg, NumPy, SciPy (MFCC fait-maison)
+- **Génération de rapports** : ReportLab (PDF), openpyxl (Excel)
+- **Conteneurisation** : Docker, Docker Compose
+- **Déploiement cloud** : Render (Blueprint)
+
+## Structure du projet
+
+```
+kiyanza_chatbot/
+├── scripts/
+│   ├── chatbot/              # Module 4.1.A — chatbot RAG + Text-to-SQL
+│   ├── simulation/           # Module 4.4 — simulation, recommandations, plans
+│   └── radio_monitoring/     # Module 4.7 — détection audio, scheduler, rapports
+├── data/
+│   ├── kiyanza_cameroon_pme_marketing_20k_v3.xlsx   # dataset d'entraînement
+│   └── simulation/           # données préparées (train/test/schéma)
+├── models/
+│   └── simulation/           # modèles XGBoost entraînés (.joblib)
+├── output/
+│   └── chroma_db/            # base vectorielle du chatbot
+├── run_api.py                 # lance l'API de simulation (port 8001)
+├── run_chatbot_api.py         # lance l'API du chatbot (port 8000)
+├── run_radio_api.py           # lance l'API du monitoring radio (port 8002)
+├── Dockerfile                  # image de l'API de simulation
+├── Dockerfile.chatbot           # image de l'API du chatbot
+├── Dockerfile.radio              # image du monitoring radio (API + worker + beat)
+├── docker-compose.yml          # orchestration locale des 5 services
+├── render.yaml                  # déploiement cloud (Render Blueprint)
+├── requirements.txt              # dépendances complètes (dev local)
+├── requirements-api.txt           # dépendances image simulation
+├── requirements-chatbot.txt        # dépendances image chatbot
+├── requirements-radio.txt           # dépendances image monitoring radio
+└── .env                              # variables d'environnement (non versionné)
+```
+
+## Installation
+
+### Prérequis
+
+- Python 3.11
+- PostgreSQL
+- Redis (pour le monitoring radio)
+- ffmpeg (pour le monitoring radio)
+- Une clé API Google Gemini gratuite : [aistudio.google.com/apikey](https://aistudio.google.com/apikey)
+
+### Étapes
 
 ```bash
-# 1. Cloner le dépôt
-git clone https://github.com/Liyanza/Chatbot.git kiyanza-chatbot
-cd kiyanza-chatbot
+git clone https://github.com/Liyanza/kiyanza_assistant_ia.git
+cd kiyanza_assistant_ia
 
-# 2. Créer et activer l'environnement virtuel
 python -m venv venv
-venv\Scripts\Activate.ps1        # Windows PowerShell
-# venv\Scripts\activate.bat      # Windows cmd
-# source venv/bin/activate       # macOS / Linux
-
-# 3. Installer les dépendances
-pip install -r requirements.txt
-
-# 4. Configurer PostgreSQL
-copy .env.example .env           # Windows — cp sur macOS/Linux
-# puis remplir .env avec tes vrais identifiants PostgreSQL
-
-# 5. Installer Ollama et un modèle local (voir section 9 plus bas)
-ollama pull llama3.2
-
-# 6. Lancer les scripts de préparation des données, dans l'ordre
-python scripts/01_extract_and_chunk_text.py
-python scripts/02_load_excel_to_postgres.py
-python scripts/03_generate_embeddings.py
-
-# 7. Lancer le chatbot
-python scripts/06_chatbot.py
+venv\Scripts\activate          # Windows
+python -m pip install -r requirements.txt
 ```
 
-Les fichiers `data/*.pdf` et `data/*.xlsx` sont déjà inclus dans le dépôt
-(pas besoin de les recopier manuellement). Le détail de chaque étape,
-avec les explications et les points d'attention, est ci-dessous.
+Crée un fichier `.env` à la racine :
 
----
+```
+GEMINI_API_KEY=ta_cle_gemini
+DB_HOST=127.0.0.1
+DB_PORT=5432
+DB_NAME=kiyanza
+DB_USER=postgres
+DB_PASSWORD=ton_mot_de_passe
+REDIS_URL=redis://localhost:6379/0
+```
 
-## 1. Ouvrir le projet dans VS Code
+## Utilisation en local
 
-Ouvre le dossier `kiyanza-chatbot` dans VS Code (`File > Open Folder...`).
-Ouvre un terminal intégré : `Terminal > New Terminal`.
+Chaque module s'utilise indépendamment. Depuis la racine du projet :
 
-## 2. Créer et activer un environnement virtuel Python
+**Chatbot**
+```bash
+python run_chatbot_api.py        # API sur http://localhost:8000/docs
+```
+
+**Simulation de campagne** — nécessite d'avoir préparé les données et entraîné les modèles une fois :
+```bash
+python scripts\simulation\07_prepare_simulation_data.py --source excel --excel-path data\kiyanza_cameroon_pme_marketing_20k_v3.xlsx
+python scripts\simulation\08_train_simulation_models.py
+python run_api.py                 # API sur http://localhost:8001/docs
+```
+
+**Monitoring radio** — nécessite 3 processus séparés :
+```bash
+python run_radio_api.py                                                          # API sur http://localhost:8002/docs
+cd scripts/radio_monitoring && celery -A celery_app worker --loglevel=info -P solo  # worker (terminal dédié)
+cd scripts/radio_monitoring && celery -A celery_app beat --loglevel=info             # scheduler (terminal dédié)
+```
+
+## Déploiement Docker
 
 ```bash
-python -m venv venv
+docker compose up --build
 ```
 
-Puis active-le :
-- **Windows (PowerShell)** : `venv\Scripts\Activate.ps1`
-- **Windows (cmd)** : `venv\Scripts\activate.bat`
-- **macOS / Linux** : `source venv/bin/activate`
+Lance les 5 services (chatbot, simulation, monitoring radio — API + worker + beat) dans des conteneurs séparés. PostgreSQL et Redis restent sur la machine hôte, accessibles via `host.docker.internal`.
 
-Dans VS Code, sélectionne aussi cet interpréteur : `Ctrl+Shift+P` (ou `Cmd+Shift+P`)
-→ "Python: Select Interpreter" → choisis celui dans `venv`.
+## Déploiement Render
 
-## 3. Installer les dépendances
+Le fichier `render.yaml` (Blueprint) décrit l'ensemble du déploiement cloud : 3 API web, 2 workers, une base PostgreSQL et un service Redis managés.
 
-```bash
-pip install -r requirements.txt
-```
+1. Pousser le projet sur GitHub
+2. Sur [render.com](https://render.com) : **New +** → **Blueprint** → sélectionner le dépôt
+3. Renseigner `GEMINI_API_KEY` lorsque demandé (jamais commité dans le dépôt)
 
-## 4. Placer tes fichiers de données
+## Référence des API
 
-Copie tes trois fichiers dans le dossier `data/` :
-- `data/kiyanza_cadrage.pdf` (le document de cadrage)
-- `data/kiyanza_cahier_des_charges_ia.pdf` (le cahier des charges du module IA)
-- `data/kiyanza_cameroon_pme_marketing_20k_v2.xlsx` (le fichier Excel)
+### Chatbot — `:8000`
 
-## 5. Configurer la connexion PostgreSQL
+| Méthode | Endpoint | Description |
+|---|---|---|
+| POST | `/ask` | Pose une question au chatbot marketing |
 
-Copie `.env.example` en `.env` :
+### Simulation — `:8001`
 
-```bash
-cp .env.example .env      # macOS / Linux
-copy .env.example .env    # Windows
-```
+| Méthode | Endpoint | Description |
+|---|---|---|
+| POST | `/simulate/quick` | Prédictions rapides, sans texte généré |
+| POST | `/simulate/full` | Prédictions + texte en français (LLM) |
+| POST | `/simulate/recommendations` | Suggestions d'ajustement de paramètres |
+| POST | `/simulate/multi-platform` | Comparaison de répartitions budgétaires |
+| POST | `/campaigns/launch` | Enregistre une campagne validée |
+| GET | `/campaigns/{campaign_id}/plan` | Plan marketing et de communication |
 
-Ouvre `.env` et remplis avec tes vrais identifiants PostgreSQL.
+### Monitoring radio — `:8002`
 
-Crée la base de données (si ce n'est pas déjà fait), depuis un terminal `psql`
-ou pgAdmin :
+| Méthode | Endpoint | Description |
+|---|---|---|
+| POST | `/spots` | Upload du fichier audio de référence du spot |
+| POST | `/schedule` | Planifie une diffusion à surveiller |
+| GET | `/schedule/{schedule_id}` | Statut d'une diffusion planifiée |
+| GET | `/schedule` | Liste des diffusions (filtrable) |
+| GET | `/report` | Télécharge le rapport de conformité (PDF/Excel) |
 
-```sql
-CREATE DATABASE kiyanza;
-```
+Chaque API expose aussi `/health` et une documentation interactive sur `/docs`.
 
-## 6. Lancer l'extraction et le découpage du texte (RAG)
+## Roadmap
 
-```bash
-python scripts/01_extract_and_chunk_text.py
-```
-
-Ça va créer `output/text_chunks.json` : une liste de morceaux de texte,
-chacun avec sa section d'origine. C'est ce fichier qu'on utilisera à
-l'étape suivante pour générer les embeddings.
-
-## 7. Charger le fichier Excel dans PostgreSQL
-
-```bash
-python scripts/02_load_excel_to_postgres.py
-```
-
-Ça va créer une table `campaigns` dans ta base PostgreSQL avec les
-20 000 lignes de campagnes, prête à être interrogée en SQL.
-
-Tu peux vérifier avec `psql` ou pgAdmin :
-
-```sql
-SELECT company, industry, roas FROM campaigns LIMIT 5;
-```
-
-## 8. Générer les embeddings et construire la base vectorielle
-
-```bash
-python scripts/03_generate_embeddings.py
-```
-
-Ce script :
-- charge `output/text_chunks.json` (généré à l'étape précédente),
-- calcule un embedding pour chaque chunk avec un modèle open-source
-  multilingue (`paraphrase-multilingual-mpnet-base-v2`, adapté au
-  français, gratuit, tourne en local),
-- stocke le tout dans une base vectorielle **Chroma** persistante, dans
-  `output/chroma_db/`,
-- termine par un petit test de recherche sémantique pour vérifier que ça
-  fonctionne.
-
-**Premier lancement** : le modèle (~470 Mo) doit être téléchargé, ça peut
-prendre quelques minutes selon ta connexion. Les lancements suivants sont
-rapides.
-
-## 8. Le system prompt de l'assistant
-
-Le fichier `scripts/system_prompt.md` contient le prompt système de
-l'assistant IA (mode « Poser une question »), rédigé directement à partir
-des règles de gestion et exigences non fonctionnelles du Cahier des
-charges IA (sections 4.1 et 6) : ton d'expert marketing, règles de
-confidentialité entre entreprises, adaptation au contexte local,
-présentation systématique de la fonctionnalité Kiyanza pertinente, etc.
-
-## 9. Installer et tester Ollama (LLM local et gratuit)
-
-1. Télécharge et installe Ollama : https://ollama.com/download
-2. Télécharge un modèle léger, adapté à une machine sans GPU dédié :
-   ```bash
-   ollama pull llama3.2
-   ```
-   (Le nom du modèle utilisé par le projet est configuré dans
-   `scripts/llm_client.py`, variable `MODEL_NAME`. Si ta machine reste
-   lente, essaie `ollama pull llama3.2:1b`, plus léger, et mets à jour
-   `MODEL_NAME` en conséquence.)
-3. Teste-le en ligne de commande :
-   ```bash
-   ollama run llama3.2
-   ```
-   Pose une question, vérifie que ça répond, puis `/bye` pour quitter.
-
-Ollama tourne en arrière-plan et expose une API locale sur
-`http://localhost:11434`, utilisée par nos scripts Python.
-
-## 10. Construire l'outil text-to-SQL
-
-```bash
-python scripts/04_text_to_sql.py "Quel est le budget moyen des campagnes ?"
-```
-
-Ce script convertit ta question en requête SQL via le LLM local, l'exécute
-sur la table `campaigns`, et affiche le résultat. La logique réutilisable
-est dans `scripts/text_to_sql.py` (importée aussi par le chatbot final).
-
-Sécurité intégrée : seules les requêtes `SELECT` sont autorisées ; toute
-requête contenant `INSERT`, `UPDATE`, `DELETE`, `DROP`, etc. est rejetée
-avant exécution.
-
-## 11. Tester la recherche RAG
-
-```bash
-python scripts/05_rag_retrieve.py "Comment fonctionne le monitoring radio ?"
-```
-
-Récupère les extraits de documents les plus pertinents pour la question,
-depuis la base Chroma construite à l'étape 7. Logique réutilisable dans
-`scripts/rag_retrieve.py`.
-
-## 12. Lancer le chatbot complet
-
-```bash
-python scripts/06_chatbot.py
-```
-
-Assemble tout : system prompt + recherche RAG (toujours) + requête SQL (si
-la question semble porter sur des données chiffrées de campagnes, détecté
-par une liste de mots-clés simple) + appel au LLM local pour la réponse
-finale. Pose tes questions directement dans le terminal.
-
-**Limite actuelle à connaître** : le routage RAG/SQL est une heuristique
-par mots-clés, volontairement simple pour ce stade du projet. Si les
-questions financières/chiffrées ne sont pas bien détectées, on pourra
-remplacer cette liste par un routage décidé par le LLM lui-même dans une
-prochaine itération.
+- **§4.5 — Analyse des performances marketing** : comparaison des résultats réels d'une campagne aux prédictions de simulation
+- **§4.6 — Recommandations post-campagne** : suggestions basées sur les performances réelles observées
+- **Monitoring radio — analyse concurrentielle** : part de voix entre marques, transcription et analyse du positionnement des messages publicitaires, cartographie des créneaux les moins saturés
+- **QR Codes** et **suivi photo géolocalisé** des installations terrain
