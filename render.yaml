@@ -28,6 +28,8 @@ envVarGroups:
     envVars:
       - key: GEMINI_API_KEY
         sync: false   # Render demandera la valeur dans son tableau de bord
+      - key: INTERNAL_TOKEN
+        sync: false   # secret partagé avec Liyanza-backend (header X-Internal-Token)
 
 services:
   # --- Redis (broker Celery pour le monitoring radio) -------------------

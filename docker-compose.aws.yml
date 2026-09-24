@@ -1,0 +1,89 @@
+# Déploiement du chatbot Kiyanza sur une seule instance AWS EC2.
+# Guide pas à pas : deploy/aws/README.md
+#
+# Services :
+#   caddy        — seul service exposé (ports 80/443), HTTPS automatique
+#                  (Let's Encrypt) devant l'API.
+#   chatbot-api  — API FastAPI (POST /ask), jamais exposée directement.
+#   db           — PostgreSQL pour le Text-to-SQL (table `campaigns`).
+#   data-loader  — tâche ponctuelle (profil "tools") qui charge l'Excel des
+#                  campagnes dans PostgreSQL.
+#
+# Le chatbot se connecte avec un rôle PostgreSQL en LECTURE SEULE
+# (kiyanza_ro, créé par deploy/aws/postgres-init/) : les requêtes SQL sont
+# générées par le LLM, elles ne doivent jamais pouvoir modifier la base,
+# même si le filtre de text_to_sql.py était contourné.
+#
+# Variables lues dans le fichier .env à la racine (voir .env.example).
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: kiyanza
+      POSTGRES_USER: kiyanza
+      POSTGRES_PASSWORD: ${DB_ADMIN_PASSWORD:?DB_ADMIN_PASSWORD manquant dans .env}
+      DB_READONLY_PASSWORD: ${DB_READONLY_PASSWORD:?DB_READONLY_PASSWORD manquant dans .env}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./deploy/aws/postgres-init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kiyanza -d kiyanza"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  chatbot-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.chatbot
+    environment:
+      GEMINI_API_KEY: ${GEMINI_API_KEY:?GEMINI_API_KEY manquant dans .env}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-flash-latest}
+      INTERNAL_TOKEN: ${INTERNAL_TOKEN:?INTERNAL_TOKEN manquant dans .env}
+      DB_HOST: db
+      DB_PORT: "5432"
+      DB_NAME: kiyanza
+      DB_USER: kiyanza_ro
+      DB_PASSWORD: ${DB_READONLY_PASSWORD}
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  caddy:
+    image: caddy:2-alpine
+    command: caddy reverse-proxy --from ${PUBLIC_HOST:?PUBLIC_HOST manquant dans .env} --to chatbot-api:8000
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - caddy_data:/data
+    depends_on:
+      - chatbot-api
+    restart: unless-stopped
+
+  data-loader:
+    profiles: ["tools"]
+    image: python:3.11-slim
+    working_dir: /app
+    volumes:
+      - ./scripts:/app/scripts:ro
+      - ./data:/app/data:ro
+    environment:
+      DB_HOST: db
+      DB_PORT: "5432"
+      DB_NAME: kiyanza
+      DB_USER: kiyanza
+      DB_PASSWORD: ${DB_ADMIN_PASSWORD}
+    command: >
+      sh -c "pip install --quiet --no-cache-dir pandas openpyxl sqlalchemy psycopg2-binary python-dotenv
+      && python scripts/chatbot/02_load_excel_to_postgres.py"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:
+  caddy_data:

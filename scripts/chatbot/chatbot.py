@@ -7,18 +7,26 @@ Pour chaque question, cette logique :
      (SQL), les deux, ou aucune des deux.
   2. Recupere le contexte necessaire.
   3. Assemble le system prompt (system_prompt.md) + le contexte + la
-     question, et appelle le LLM local (Ollama) pour la reponse finale.
+     question, et appelle le LLM (Gemini, via llm_client.py) pour la
+     reponse finale.
+
+Le profil de l'entreprise et les derniers echanges de la conversation sont
+fournis par Liyanza-backend (jamais recherches ici) : ils appartiennent
+toujours a l'entreprise de l'utilisateur courant.
 
 Importe par :
     - 06_chatbot.py (usage en ligne de commande, interactif)
     - chatbot_api.py (API FastAPI)
 """
 
+import logging
 from pathlib import Path
 
 from llm_client import ask_llm
 from rag_retrieve import retrieve_relevant_chunks, format_chunks_for_prompt
 from text_to_sql import answer_with_sql
+
+logger = logging.getLogger("kiyanza.chatbot")
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 
@@ -57,7 +65,14 @@ def build_context(question: str) -> str:
         )
 
     if needs_sql(question):
-        result_df, sql_query = answer_with_sql(question)
+        # PostgreSQL injoignable ou table absente : on repond quand meme,
+        # sans les donnees chiffrees, plutot que de refuser toute question
+        # contenant "budget", "taux", etc.
+        try:
+            result_df, sql_query = answer_with_sql(question)
+        except Exception:
+            logger.exception("Text-to-SQL indisponible, reponse sans donnees de campagnes")
+            result_df, sql_query = None, None
         if result_df is not None and not result_df.empty:
             context_parts.append(
                 f"Donnees issues de la base de campagnes "
@@ -67,8 +82,46 @@ def build_context(question: str) -> str:
     return "\n\n---\n\n".join(context_parts)
 
 
-def answer_question(question: str, system_prompt: str) -> str:
-    context = build_context(question)
+def format_conversation_context(
+    topic: str | None,
+    company_profile: dict | None,
+    recent_messages: list[dict] | None,
+) -> str:
+    """Met en forme ce que le backend sait de l'utilisateur et de la conversation."""
+    parts = []
+
+    if company_profile:
+        labels = {"name": "Nom", "businessSector": "Secteur d'activite", "address": "Localisation"}
+        lines = [f"- {labels[k]} : {v}" for k, v in company_profile.items() if k in labels and v]
+        if lines:
+            parts.append("Profil de l'entreprise de l'utilisateur :\n" + "\n".join(lines))
+
+    if topic:
+        parts.append(f"Sujet de la conversation : {topic}")
+
+    if recent_messages:
+        speakers = {"USER": "Utilisateur", "AI": "Assistant"}
+        lines = [f"{speakers.get(m['sender'], m['sender'])} : {m['content']}" for m in recent_messages]
+        parts.append("Derniers echanges de cette conversation (du plus ancien au plus recent) :\n" + "\n".join(lines))
+
+    return "\n\n".join(parts)
+
+
+def answer_question(
+    question: str,
+    system_prompt: str,
+    topic: str | None = None,
+    company_profile: dict | None = None,
+    recent_messages: list[dict] | None = None,
+) -> str:
+    context = "\n\n---\n\n".join(
+        part
+        for part in (
+            format_conversation_context(topic, company_profile, recent_messages),
+            build_context(question),
+        )
+        if part
+    )
 
     if context:
         user_message = (
