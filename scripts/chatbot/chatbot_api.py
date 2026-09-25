@@ -71,6 +71,7 @@ from chatbot import (
     prepare_question,
 )
 from rag_retrieve import warm_up as warm_up_rag
+from text_to_sql import get_engine, get_table_schema
 
 logger = logging.getLogger("kiyanza.chatbot_api")
 
@@ -170,6 +171,12 @@ async def lifespan(app: FastAPI):
     # sinon la première question paie 10 à 20 s de chargement, et une base
     # Chroma absente ne se découvrirait qu'au premier appel.
     warm_up_rag()
+    # Connexion et schéma SQL préparés d'avance. Facultatif : sans PostgreSQL
+    # (ou sans la table campaigns), le chatbot répond sans données chiffrées.
+    try:
+        get_table_schema(get_engine())
+    except Exception as e:
+        logger.warning("Text-to-SQL indisponible au démarrage : %s", e)
     yield
 
 
