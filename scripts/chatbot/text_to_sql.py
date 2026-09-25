@@ -56,8 +56,23 @@ def get_engine():
     return _engine
 
 
+_schema = None
+
+
 def get_table_schema(engine) -> str:
-    """Introspecte la table campaigns et renvoie une description du schema."""
+    """
+    Introspecte la table campaigns et renvoie une description du schema.
+    Mis en cache : les colonnes ne changent pas (02_load_excel_to_postgres.py
+    recree la table a l'identique), inutile de relire le catalogue a chaque
+    question chiffree.
+    """
+    global _schema
+    if _schema is None:
+        _schema = _describe_table(engine)
+    return _schema
+
+
+def _describe_table(engine) -> str:
     inspector = inspect(engine)
     columns = inspector.get_columns(TABLE_NAME)
     lines = [f"Table '{TABLE_NAME}' :"]

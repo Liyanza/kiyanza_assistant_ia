@@ -16,7 +16,10 @@ Pre-requis : une cle API gratuite sur https://aistudio.google.com/apikey,
 a placer dans le fichier .env sous le nom GEMINI_API_KEY.
 """
 
+import json
 import os
+from collections.abc import Iterator
+
 import requests
 from dotenv import load_dotenv
 
@@ -31,6 +34,42 @@ GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 GEMINI_MODEL = os.environ.get("GEMINI_MODEL") or "gemini-flash-latest"
 
 GEMINI_URL = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent"
+GEMINI_STREAM_URL = (
+    f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:streamGenerateContent?alt=sse"
+)
+
+
+def _build_request(
+    system_prompt: str,
+    user_message: str,
+    temperature: float,
+    api_key: str | None,
+    max_output_tokens: int | None,
+) -> tuple[dict, dict]:
+    api_key = api_key or GEMINI_API_KEY
+    if not api_key:
+        raise RuntimeError(
+            "GEMINI_API_KEY n'est pas definie. Ajoute-la a ton fichier .env "
+            "(cle gratuite sur https://aistudio.google.com/apikey)."
+        )
+
+    payload = {
+        "system_instruction": {"parts": [{"text": system_prompt}]},
+        "contents": [{"parts": [{"text": user_message}]}],
+        "generationConfig": {"temperature": temperature},
+    }
+    if max_output_tokens:
+        payload["generationConfig"]["maxOutputTokens"] = max_output_tokens
+    headers = {
+        "Content-Type": "application/json",
+        "x-goog-api-key": api_key,
+    }
+    return payload, headers
+
+
+def _candidate_text(data: dict) -> str:
+    parts = data.get("candidates", [{}])[0].get("content", {}).get("parts", [])
+    return "".join(part.get("text", "") for part in parts)
 
 
 def ask_llm(
@@ -50,30 +89,40 @@ def ask_llm(
     pas epuiser le quota des clients connectes).
     max_output_tokens : plafond de longueur de la reponse.
     """
-    api_key = api_key or GEMINI_API_KEY
-    if not api_key:
-        raise RuntimeError(
-            "GEMINI_API_KEY n'est pas definie. Ajoute-la a ton fichier .env "
-            "(cle gratuite sur https://aistudio.google.com/apikey)."
-        )
-
-    payload = {
-        "system_instruction": {"parts": [{"text": system_prompt}]},
-        "contents": [{"parts": [{"text": user_message}]}],
-        "generationConfig": {"temperature": temperature},
-    }
-    if max_output_tokens:
-        payload["generationConfig"]["maxOutputTokens"] = max_output_tokens
-    headers = {
-        "Content-Type": "application/json",
-        "x-goog-api-key": api_key,
-    }
+    payload, headers = _build_request(system_prompt, user_message, temperature, api_key, max_output_tokens)
 
     response = requests.post(GEMINI_URL, json=payload, headers=headers, timeout=60)
     response.raise_for_status()
     data = response.json()
 
-    try:
-        return data["candidates"][0]["content"]["parts"][0]["text"]
-    except (KeyError, IndexError):
+    text = _candidate_text(data)
+    if not text:
         raise RuntimeError(f"Reponse Gemini inattendue (pas de texte trouve) : {data}")
+    return text
+
+
+def ask_llm_stream(
+    system_prompt: str,
+    user_message: str,
+    temperature: float = 0.3,
+    api_key: str | None = None,
+    max_output_tokens: int | None = None,
+) -> Iterator[str]:
+    """
+    Meme appel qu'ask_llm, mais renvoie la reponse morceau par morceau, au
+    fil de sa generation par Gemini (streamGenerateContent, format SSE).
+    L'erreur HTTP eventuelle est levee au premier next(), avant tout texte.
+    """
+    payload, headers = _build_request(system_prompt, user_message, temperature, api_key, max_output_tokens)
+
+    # timeout=(connexion, lecture entre deux morceaux) : pas de limite sur la
+    # duree totale, mais un flux bloque plus de 60 s est abandonne.
+    with requests.post(GEMINI_STREAM_URL, json=payload, headers=headers, stream=True, timeout=(10, 60)) as response:
+        response.raise_for_status()
+        response.encoding = "utf-8"
+        for line in response.iter_lines(decode_unicode=True):
+            if not line or not line.startswith("data:"):
+                continue
+            text = _candidate_text(json.loads(line[len("data:"):].strip()))
+            if text:
+                yield text

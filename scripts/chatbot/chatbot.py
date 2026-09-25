@@ -28,9 +28,11 @@ Importe par :
 
 import logging
 import os
+from collections.abc import Iterator
+from dataclasses import dataclass
 from pathlib import Path
 
-from llm_client import ask_llm
+from llm_client import ask_llm, ask_llm_stream
 from rag_retrieve import retrieve_relevant_chunks, format_chunks_for_prompt
 from text_to_sql import answer_with_sql
 
@@ -153,14 +155,34 @@ def format_conversation_context(
     return "\n\n".join(parts)
 
 
-def answer_question(
+@dataclass
+class LlmRequest:
+    """
+    Appel LLM entierement prepare (contexte RAG/SQL deja recupere). Separe de
+    son execution pour que la meme preparation serve a la reponse d'un bloc
+    (ask_llm) comme a la reponse en flux (ask_llm_stream, POST /ask/stream).
+    """
+    system_prompt: str
+    user_message: str
+    temperature: float = 0.4
+    api_key: str | None = None
+    max_output_tokens: int | None = None
+
+    def run(self) -> str:
+        return ask_llm(**self.__dict__)
+
+    def stream(self) -> Iterator[str]:
+        return ask_llm_stream(**self.__dict__)
+
+
+def prepare_question(
     question: str,
     system_prompt: str,
     topic: str | None = None,
     company_profile: dict | None = None,
     recent_messages: list[dict] | None = None,
     campaign: dict | None = None,
-) -> str:
+) -> LlmRequest:
     context = "\n\n---\n\n".join(
         part
         for part in (
@@ -186,14 +208,14 @@ def answer_question(
     else:
         user_message = f"=== QUESTION REELLE DE L'UTILISATEUR ===\n{question}"
 
-    return ask_llm(system_prompt, user_message, temperature=0.4)
+    return LlmRequest(system_prompt, user_message)
 
 
-def answer_public_question(
+def prepare_public_question(
     question: str,
     system_prompt: str,
     recent_messages: list[dict] | None = None,
-) -> str:
+) -> LlmRequest:
     """
     Mode vitrine : aucune recherche (ni RAG sur les documents internes, ni
     SQL). Seuls les echanges precedents de la meme session sont repris ;
@@ -210,10 +232,18 @@ def answer_public_question(
     else:
         user_message = f"=== QUESTION DU VISITEUR ===\n{question}"
 
-    return ask_llm(
+    return LlmRequest(
         system_prompt,
         user_message,
-        temperature=0.4,
         api_key=GEMINI_API_KEY_PUBLIC,
         max_output_tokens=PUBLIC_MAX_OUTPUT_TOKENS,
     )
+
+
+def answer_question(question: str, system_prompt: str, **context) -> str:
+    """Reponse d'un bloc (06_chatbot.py, POST /ask). Voir prepare_question."""
+    return prepare_question(question, system_prompt, **context).run()
+
+
+def answer_public_question(question: str, system_prompt: str, recent_messages: list[dict] | None = None) -> str:
+    return prepare_public_question(question, system_prompt, recent_messages).run()

@@ -68,7 +68,10 @@ def warm_up() -> None:
     l'API) : echoue tout de suite si la base Chroma est absente, plutot qu'a
     la premiere question d'un utilisateur.
     """
-    _get_model()
+    # Un premier encodage « a vide » initialise aussi les noyaux de calcul :
+    # sans lui, la premiere vraie question apres un redemarrage prenait
+    # plusieurs secondes de plus.
+    _get_model().encode(["warm-up"], normalize_embeddings=True)
     _get_collection()
 
 

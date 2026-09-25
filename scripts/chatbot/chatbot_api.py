@@ -29,6 +29,14 @@ Contrat (voir Liyanza-backend, src/modules/assistant-ia/clients/ia-engine.interf
     }
     -> {"answer": "..."}
 
+    POST /ask/stream   (même corps, même en-tête)
+    -> text/event-stream, la réponse au fil de sa génération :
+       data: {"type": "delta", "text": "..."}   (répété)
+       data: {"type": "done"}                      (fin normale)
+       data: {"type": "error"}                     (échec en cours de route)
+    Une erreur AVANT le premier morceau (Gemini surchargé, clé invalide...)
+    reste un HTTP 503, comme /ask.
+
 Mode "public" : visiteur anonyme du site, relayé par l'endpoint public
 (limité par IP) du backend. Prompt vitrine, aucune donnée (ni RAG sur les
 documents internes, ni SQL), 500 caractères et 4 messages d'historique au
@@ -44,21 +52,26 @@ IMPORTANT : à lancer depuis la racine du projet.
 
 import hashlib
 import hmac
+import json
 import logging
 import os
+from collections.abc import Iterator
 from contextlib import asynccontextmanager
 from typing import Literal
 
 from fastapi import Depends, FastAPI, Header, HTTPException, status
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field, model_validator
 
 from chatbot import (
-    answer_public_question,
-    answer_question,
+    LlmRequest,
     load_public_system_prompt,
     load_system_prompt,
+    prepare_public_question,
+    prepare_question,
 )
 from rag_retrieve import warm_up as warm_up_rag
+from text_to_sql import get_engine, get_table_schema
 
 logger = logging.getLogger("kiyanza.chatbot_api")
 
@@ -158,6 +171,12 @@ async def lifespan(app: FastAPI):
     # sinon la première question paie 10 à 20 s de chargement, et une base
     # Chroma absente ne se découvrirait qu'au premier appel.
     warm_up_rag()
+    # Connexion et schéma SQL préparés d'avance. Facultatif : sans PostgreSQL
+    # (ou sans la table campaigns), le chatbot répond sans données chiffrées.
+    try:
+        get_table_schema(get_engine())
+    except Exception as e:
+        logger.warning("Text-to-SQL indisponible au démarrage : %s", e)
     yield
 
 
@@ -175,32 +194,76 @@ def health():
     return {"status": "ok"}
 
 
+UNAVAILABLE = HTTPException(
+    status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+    detail="Le chatbot est temporairement indisponible.",
+)
+
+
+def prepare(request: AskRequest) -> LlmRequest:
+    """Recherche RAG/SQL et contexte : tout ce qui précède l'appel au LLM."""
+    context = request.context or AskContext()
+    recent_messages = [m.model_dump() for m in context.recentMessages]
+    if request.mode == "public":
+        return prepare_public_question(request.userMessage, _public_system_prompt, recent_messages)
+    return prepare_question(
+        request.userMessage,
+        _system_prompt,
+        topic=context.topic,
+        company_profile=context.companyProfile.model_dump(exclude_none=True) if context.companyProfile else None,
+        recent_messages=recent_messages,
+        campaign=context.campaign.model_dump(exclude_none=True) if context.campaign else None,
+    )
+
+
 @app.post("/ask", response_model=AskResponse, dependencies=[Depends(verify_internal_token)])
 def ask(request: AskRequest):
     """Pose une question au chatbot marketing de Kiyanza."""
-    context = request.context or AskContext()
-    recent_messages = [m.model_dump() for m in context.recentMessages]
     try:
-        if request.mode == "public":
-            answer = answer_public_question(request.userMessage, _public_system_prompt, recent_messages)
-        else:
-            answer = answer_question(
-                request.userMessage,
-                _system_prompt,
-                topic=context.topic,
-                company_profile=context.companyProfile.model_dump(exclude_none=True)
-                if context.companyProfile
-                else None,
-                recent_messages=recent_messages,
-                campaign=context.campaign.model_dump(exclude_none=True) if context.campaign else None,
-            )
+        answer = prepare(request).run()
     except Exception:
         # Le détail (clé API invalide, quota Gemini, Chroma corrompue...)
         # reste dans les logs du serveur : le renvoyer au client exposerait
         # des informations internes (§6.3 : informer sans divulguer).
         logger.exception("Échec du traitement de /ask (mode %s, conversation %s)", request.mode, request.conversationId)
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Le chatbot est temporairement indisponible.",
-        )
+        raise UNAVAILABLE
     return {"answer": answer}
+
+
+def sse(event: dict) -> str:
+    return f"data: {json.dumps(event, ensure_ascii=False)}\n\n"
+
+
+@app.post("/ask/stream", dependencies=[Depends(verify_internal_token)])
+def ask_stream(request: AskRequest):
+    """Même question que /ask, réponse envoyée au fil de sa génération (SSE)."""
+    try:
+        chunks = prepare(request).stream()
+        # Le premier morceau est attendu ICI : une erreur de démarrage
+        # (Gemini surchargé, clé invalide) donne un vrai 503 plutôt qu'un
+        # flux 200 vide.
+        first = next(chunks)
+    except StopIteration:
+        logger.error("Réponse Gemini vide (mode %s, conversation %s)", request.mode, request.conversationId)
+        raise UNAVAILABLE
+    except Exception:
+        logger.exception("Échec du démarrage de /ask/stream (mode %s, conversation %s)", request.mode, request.conversationId)
+        raise UNAVAILABLE
+
+    def events() -> Iterator[str]:
+        yield sse({"type": "delta", "text": first})
+        try:
+            for chunk in chunks:
+                yield sse({"type": "delta", "text": chunk})
+        except Exception:
+            logger.exception("Flux interrompu (mode %s, conversation %s)", request.mode, request.conversationId)
+            yield sse({"type": "error"})
+            return
+        yield sse({"type": "done"})
+
+    return StreamingResponse(
+        events(),
+        media_type="text/event-stream",
+        # Aucun proxy intermédiaire ne doit mettre la réponse en tampon.
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
