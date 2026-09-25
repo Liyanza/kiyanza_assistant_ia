@@ -105,6 +105,11 @@ DB_ADMIN_PASSWORD=<32 caractères hex>
 DB_READONLY_PASSWORD=<32 caractères hex, différent>
 ```
 
+Facultatif : `GEMINI_API_KEY_PUBLIC` (clé Gemini distincte pour le widget
+public du site, idéalement créée dans un autre projet Google Cloud pour
+avoir son propre quota) et `GEMINI_MODEL` (ex: `gemini-flash-lite-latest`
+si le modèle par défaut est saturé).
+
 `PUBLIC_HOST` : pour l'IP `13.37.1.2`, écris `13-37-1-2.sslip.io`. Ce nom
 gratuit pointe vers ton IP, ce qui permet à Caddy d'obtenir un certificat
 HTTPS Let's Encrypt sans acheter de domaine. Si tu as un domaine, crée un

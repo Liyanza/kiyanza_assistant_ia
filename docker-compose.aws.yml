@@ -41,6 +41,8 @@ services:
     environment:
       GEMINI_API_KEY: ${GEMINI_API_KEY:?GEMINI_API_KEY manquant dans .env}
       GEMINI_MODEL: ${GEMINI_MODEL:-gemini-flash-latest}
+      # Clé distincte pour le mode public (site vitrine), facultative.
+      GEMINI_API_KEY_PUBLIC: ${GEMINI_API_KEY_PUBLIC:-}
       INTERNAL_TOKEN: ${INTERNAL_TOKEN:?INTERNAL_TOKEN manquant dans .env}
       DB_HOST: db
       DB_PORT: "5432"

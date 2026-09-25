@@ -16,15 +16,23 @@ Contrat (voir Liyanza-backend, src/modules/assistant-ia/clients/ia-engine.interf
     POST /ask
     X-Internal-Token: <INTERNAL_TOKEN>
     {
+      "mode": "expert" | "public",        (optionnel, "expert" par défaut)
       "conversationId": "...",            (optionnel)
       "userMessage": "...",
       "context": {                         (optionnel)
         "topic": "...",
         "companyProfile": {"name", "businessSector", "address"},
+        "campaign": {"name", "objective", "status", "plannedBudget",
+                     "startDate", "endDate", "channels", "results"},
         "recentMessages": [{"sender": "USER"|"AI", "content": "..."}]
       }
     }
     -> {"answer": "..."}
+
+Mode "public" : visiteur anonyme du site, relayé par l'endpoint public
+(limité par IP) du backend. Prompt vitrine, aucune donnée (ni RAG sur les
+documents internes, ni SQL), 500 caractères et 4 messages d'historique au
+plus ; topic, companyProfile et campaign sont refusés.
 
 Prérequis : GEMINI_API_KEY et INTERNAL_TOKEN définis, base vectorielle
 Chroma construite (étape 3 du pipeline chatbot). PostgreSQL (Text-to-SQL)
@@ -42,9 +50,14 @@ from contextlib import asynccontextmanager
 from typing import Literal
 
 from fastapi import Depends, FastAPI, Header, HTTPException, status
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
-from chatbot import load_system_prompt, answer_question
+from chatbot import (
+    answer_public_question,
+    answer_question,
+    load_public_system_prompt,
+    load_system_prompt,
+)
 from rag_retrieve import warm_up as warm_up_rag
 
 logger = logging.getLogger("kiyanza.chatbot_api")
@@ -55,7 +68,11 @@ logger = logging.getLogger("kiyanza.chatbot_api")
 INTERNAL_TOKEN = os.environ.get("INTERNAL_TOKEN", "")
 MIN_TOKEN_LENGTH = 32
 
+PUBLIC_MAX_MESSAGE_LENGTH = 500
+PUBLIC_MAX_RECENT_MESSAGES = 4
+
 _system_prompt = None
+_public_system_prompt = None
 
 
 class CompanyProfile(BaseModel):
@@ -64,18 +81,31 @@ class CompanyProfile(BaseModel):
     address: str | None = None
 
 
+class CampaignContext(BaseModel):
+    name: str | None = None
+    objective: str | None = None
+    status: str | None = None
+    plannedBudget: float | str | None = None
+    startDate: str | None = None
+    endDate: str | None = None
+    channels: list[str] = Field(default_factory=list, max_length=30)
+    results: dict[str, float | int | str] = Field(default_factory=dict, max_length=30)
+
+
 class RecentMessage(BaseModel):
     sender: Literal["USER", "AI"]
-    content: str
+    content: str = Field(..., max_length=5000)
 
 
 class AskContext(BaseModel):
     topic: str | None = None
     companyProfile: CompanyProfile | None = None
+    campaign: CampaignContext | None = None
     recentMessages: list[RecentMessage] = Field(default_factory=list, max_length=20)
 
 
 class AskRequest(BaseModel):
+    mode: Literal["expert", "public"] = "expert"
     conversationId: str | None = None
     userMessage: str = Field(
         ...,
@@ -84,6 +114,19 @@ class AskRequest(BaseModel):
         examples=["Comment toucher plus de clients à Douala avec un petit budget ?"],
     )
     context: AskContext | None = None
+
+    @model_validator(mode="after")
+    def check_public_limits(self) -> "AskRequest":
+        if self.mode != "public":
+            return self
+        if len(self.userMessage) > PUBLIC_MAX_MESSAGE_LENGTH:
+            raise ValueError(f"userMessage limité à {PUBLIC_MAX_MESSAGE_LENGTH} caractères en mode public")
+        ctx = self.context
+        if ctx and (ctx.topic or ctx.companyProfile or ctx.campaign):
+            raise ValueError("topic, companyProfile et campaign sont interdits en mode public")
+        if ctx and len(ctx.recentMessages) > PUBLIC_MAX_RECENT_MESSAGES:
+            raise ValueError(f"{PUBLIC_MAX_RECENT_MESSAGES} messages d'historique au plus en mode public")
+        return self
 
 
 class AskResponse(BaseModel):
@@ -107,8 +150,9 @@ async def lifespan(app: FastAPI):
             "caractères (ex: openssl rand -hex 32)."
         )
 
-    global _system_prompt
+    global _system_prompt, _public_system_prompt
     _system_prompt = load_system_prompt()
+    _public_system_prompt = load_public_system_prompt()
 
     # Charge le modèle d'embeddings et la base Chroma dès le démarrage :
     # sinon la première question paie 10 à 20 s de chargement, et une base
@@ -135,21 +179,26 @@ def health():
 def ask(request: AskRequest):
     """Pose une question au chatbot marketing de Kiyanza."""
     context = request.context or AskContext()
+    recent_messages = [m.model_dump() for m in context.recentMessages]
     try:
-        answer = answer_question(
-            request.userMessage,
-            _system_prompt,
-            topic=context.topic,
-            company_profile=context.companyProfile.model_dump(exclude_none=True)
-            if context.companyProfile
-            else None,
-            recent_messages=[m.model_dump() for m in context.recentMessages],
-        )
+        if request.mode == "public":
+            answer = answer_public_question(request.userMessage, _public_system_prompt, recent_messages)
+        else:
+            answer = answer_question(
+                request.userMessage,
+                _system_prompt,
+                topic=context.topic,
+                company_profile=context.companyProfile.model_dump(exclude_none=True)
+                if context.companyProfile
+                else None,
+                recent_messages=recent_messages,
+                campaign=context.campaign.model_dump(exclude_none=True) if context.campaign else None,
+            )
     except Exception:
         # Le détail (clé API invalide, quota Gemini, Chroma corrompue...)
         # reste dans les logs du serveur : le renvoyer au client exposerait
         # des informations internes (§6.3 : informer sans divulguer).
-        logger.exception("Échec du traitement de /ask (conversation %s)", request.conversationId)
+        logger.exception("Échec du traitement de /ask (mode %s, conversation %s)", request.mode, request.conversationId)
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Le chatbot est temporairement indisponible.",
