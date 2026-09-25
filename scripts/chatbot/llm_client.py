@@ -17,7 +17,9 @@ a placer dans le fichier .env sous le nom GEMINI_API_KEY.
 """
 
 import json
+import logging
 import os
+import time
 from collections.abc import Iterator
 
 import requests
@@ -126,3 +128,63 @@ def ask_llm_stream(
             text = _candidate_text(json.loads(line[len("data:"):].strip()))
             if text:
                 yield text
+
+
+logger = logging.getLogger("kiyanza.llm_client")
+
+# Erreurs passageres de Gemini (surcharge "high demand", quota minute) :
+# une nouvelle tentative a de bonnes chances d'aboutir.
+_RETRYABLE_STATUS = {429, 500, 502, 503, 504}
+
+
+def ask_llm_json(
+    system_prompt: str,
+    user_message: str,
+    response_schema: dict,
+    temperature: float = 0.3,
+    api_key: str | None = None,
+    attempt_timeout: float = 20,
+    attempts: int = 2,
+) -> dict:
+    """
+    Meme appel qu'ask_llm, mais Gemini doit repondre un objet JSON conforme a
+    `response_schema` (sortie structuree : responseMimeType + responseSchema,
+    format OpenAPI simplifie de Gemini). Renvoie l'objet deja decode.
+
+    Chaque tentative est coupee apres `attempt_timeout` s ; un delai depasse
+    ou une erreur passagere (429/5xx) declenche une nouvelle tentative. Par
+    defaut 2 x 20 s + 1 s : la reponse (ou l'echec) arrive toujours avant
+    les 45 s d'attente du backend.
+    """
+    payload, headers = _build_request(system_prompt, user_message, temperature, api_key, None)
+    payload["generationConfig"]["responseMimeType"] = "application/json"
+    payload["generationConfig"]["responseSchema"] = response_schema
+
+    for attempt in range(1, attempts + 1):
+        started = time.monotonic()
+        try:
+            response = requests.post(GEMINI_URL, json=payload, headers=headers, timeout=(5, attempt_timeout))
+            if response.status_code in _RETRYABLE_STATUS and attempt < attempts:
+                logger.warning(
+                    "Gemini %s apres %.1f s (tentative %d/%d), nouvel essai",
+                    response.status_code, time.monotonic() - started, attempt, attempts,
+                )
+                time.sleep(1)
+                continue
+            response.raise_for_status()
+        except (requests.Timeout, requests.ConnectionError) as e:
+            if attempt >= attempts:
+                raise
+            logger.warning(
+                "Gemini sans reponse apres %.1f s (tentative %d/%d : %s), nouvel essai",
+                time.monotonic() - started, attempt, attempts, type(e).__name__,
+            )
+            time.sleep(1)
+            continue
+        break
+    data = response.json()
+
+    text = _candidate_text(data)
+    if not text:
+        raise RuntimeError(f"Reponse Gemini inattendue (pas de texte trouve) : {data}")
+    return json.loads(text)

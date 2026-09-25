@@ -37,6 +37,16 @@ Contrat (voir Liyanza-backend, src/modules/assistant-ia/clients/ia-engine.interf
     Une erreur AVANT le premier morceau (Gemini surchargé, clé invalide...)
     reste un HTTP 503, comme /ask.
 
+    POST /page-health/analyze  (même en-tête)
+    -> bilan d'une Page Facebook (statistiques calculées par le backend) :
+       {summary, strengths[], watchouts[], actions[{title, detail}]}. Voir
+       page_health_analysis.py.
+
+    POST /simulation/analyze   (même en-tête)
+    -> analyse d'une simulation de campagne digitale calculée par le
+       backend : {summary, strengths[], risks[], recommendations[{title,
+       detail}], scenarioChoice}. Voir simulation_analysis.py.
+
 Mode "public" : visiteur anonyme du site, relayé par l'endpoint public
 (limité par IP) du backend. Prompt vitrine, aucune donnée (ni RAG sur les
 documents internes, ni SQL), 500 caractères et 4 messages d'historique au
@@ -55,6 +65,7 @@ import hmac
 import json
 import logging
 import os
+import time
 from collections.abc import Iterator
 from contextlib import asynccontextmanager
 from typing import Literal
@@ -71,8 +82,13 @@ from chatbot import (
     prepare_question,
 )
 from rag_retrieve import warm_up as warm_up_rag
+from page_health_analysis import analyze_page_health, load_page_health_prompt
+from simulation_analysis import analyze_simulation, load_simulation_prompt
 from text_to_sql import get_engine, get_table_schema
 
+# Sans configuration, Python n'affiche que les WARNING et plus : on veut aussi
+# les INFO (durée des analyses) dans `docker compose logs`.
+logging.basicConfig(level=logging.INFO, format="%(levelname)s:     %(name)s - %(message)s")
 logger = logging.getLogger("kiyanza.chatbot_api")
 
 # Lu une seule fois au démarrage. Le service refuse de démarrer sans lui :
@@ -86,6 +102,8 @@ PUBLIC_MAX_RECENT_MESSAGES = 4
 
 _system_prompt = None
 _public_system_prompt = None
+_simulation_prompt = None
+_page_health_prompt = None
 
 
 class CompanyProfile(BaseModel):
@@ -163,9 +181,11 @@ async def lifespan(app: FastAPI):
             "caractères (ex: openssl rand -hex 32)."
         )
 
-    global _system_prompt, _public_system_prompt
+    global _system_prompt, _public_system_prompt, _simulation_prompt, _page_health_prompt
     _system_prompt = load_system_prompt()
     _public_system_prompt = load_public_system_prompt()
+    _simulation_prompt = load_simulation_prompt()
+    _page_health_prompt = load_page_health_prompt()
 
     # Charge le modèle d'embeddings et la base Chroma dès le démarrage :
     # sinon la première question paie 10 à 20 s de chargement, et une base
@@ -267,3 +287,167 @@ def ask_stream(request: AskRequest):
         # Aucun proxy intermédiaire ne doit mettre la réponse en tampon.
         headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
     )
+
+
+# ---------------------------------------------------------------------------
+# Analyse d'une simulation de campagne digitale (POST /simulation/analyze)
+# ---------------------------------------------------------------------------
+
+
+class SimulationBudget(BaseModel):
+    amount: float = Field(..., gt=0)
+    allocation: str | None = None
+
+
+class SimulationAudience(BaseModel):
+    ageMin: int | None = None
+    ageMax: int | None = None
+    targetGender: str | None = None
+    locations: list[str] = Field(default_factory=list, max_length=20)
+    interests: list[str] = Field(default_factory=list, max_length=30)
+
+
+class SimulationKpis(BaseModel):
+    predictedReach: float | None = None
+    predictedEngagementRate: float | None = None
+    predictedCtr: float | None = None
+    predictedRoas: float | None = None
+    avgCpc: float | None = None
+    costPerAcquisition: float | None = None
+    conversionRate: float | None = None
+    warnings: list[str] = Field(default_factory=list, max_length=10)
+
+
+class SimulationScenario(BaseModel):
+    label: str
+    isRecommended: bool = False
+    score: float | None = None
+    predictedReach: float | None = None
+    predictedClicks: float | None = None
+    predictedConversions: float | None = None
+    predictedRoas: float | None = None
+
+
+class SimulationChannel(BaseModel):
+    platform: str
+    budgetAmount: float | None = None
+    budgetPercent: float | None = None
+    predictedReach: float | None = None
+    predictedClicks: float | None = None
+    predictedConversions: float | None = None
+    predictedRoas: float | None = None
+
+
+class SimulationAnalysisRequest(BaseModel):
+    """Paramètres et résultats d'une simulation, tels que calculés par le backend."""
+    campaignName: str | None = None
+    objective: str
+    budget: SimulationBudget
+    startDate: str | None = None
+    endDate: str | None = None
+    audience: SimulationAudience
+    channels: list[str] = Field(default_factory=list, max_length=5)
+    companyProfile: CompanyProfile | None = None
+    results: SimulationKpis
+    scenarios: list[SimulationScenario] = Field(default_factory=list, max_length=5)
+    channelBreakdown: list[SimulationChannel] = Field(default_factory=list, max_length=5)
+
+
+class SimulationRecommendation(BaseModel):
+    title: str
+    detail: str
+
+
+class SimulationAnalysis(BaseModel):
+    summary: str
+    strengths: list[str]
+    risks: list[str]
+    recommendations: list[SimulationRecommendation]
+    scenarioChoice: str
+
+
+@app.post("/simulation/analyze", response_model=SimulationAnalysis, dependencies=[Depends(verify_internal_token)])
+def simulation_analyze(request: SimulationAnalysisRequest):
+    """Explique une simulation : résumé, points forts, risques, recommandations."""
+    started = time.monotonic()
+    try:
+        analysis = analyze_simulation(request.model_dump(exclude_none=True), _simulation_prompt)
+    except Exception:
+        logger.exception(
+            "Échec de /simulation/analyze (objectif %s) après %.1f s", request.objective, time.monotonic() - started
+        )
+        raise UNAVAILABLE
+    logger.info("Analyse de simulation produite en %.1f s (objectif %s)", time.monotonic() - started, request.objective)
+    return analysis
+
+
+# ---------------------------------------------------------------------------
+# Santé d'une Page Facebook (POST /page-health/analyze)
+# ---------------------------------------------------------------------------
+
+
+class PageHealthKpi(BaseModel):
+    key: str
+    current: float | None = None
+    previous: float | None = None
+    change: float | None = None
+
+
+class PageHealthTopPost(BaseModel):
+    message: str = Field("", max_length=400)
+    createdTime: str
+    reactions: int = 0
+    comments: int = 0
+    shares: int = 0
+
+
+class PageHealthSlot(BaseModel):
+    weekday: int = Field(..., ge=0, le=6)
+    slot: int = Field(..., ge=0, le=7)
+    posts: int
+    avgInteractions: float
+
+
+class PageHealthBestTimes(BaseModel):
+    enough: bool
+    sampleSize: int
+    top: list[PageHealthSlot] = Field(default_factory=list, max_length=5)
+
+
+class PageHealthRequest(BaseModel):
+    """Indicateurs d'une Page Facebook, tels que calculés par le backend."""
+    pageName: str = Field(..., max_length=200)
+    followers: int | None = None
+    periodDays: int = 28
+    kpis: list[PageHealthKpi] = Field(default_factory=list, max_length=5)
+    postsInPeriod: int = 0
+    postsPerWeek: float = 0
+    avgInteractionsPerPost: float | None = None
+    engagementRate: float | None = None
+    topPosts: list[PageHealthTopPost] = Field(default_factory=list, max_length=3)
+    bestTimes: PageHealthBestTimes
+
+
+class PageHealthAction(BaseModel):
+    title: str
+    detail: str
+
+
+class PageHealthAnalysis(BaseModel):
+    summary: str
+    strengths: list[str]
+    watchouts: list[str]
+    actions: list[PageHealthAction]
+
+
+@app.post("/page-health/analyze", response_model=PageHealthAnalysis, dependencies=[Depends(verify_internal_token)])
+def page_health_analyze(request: PageHealthRequest):
+    """Bilan d'une Page Facebook : résumé, points forts, vigilance, 3 actions."""
+    started = time.monotonic()
+    try:
+        analysis = analyze_page_health(request.model_dump(exclude_none=True), _page_health_prompt)
+    except Exception:
+        logger.exception("Échec de /page-health/analyze après %.1f s", time.monotonic() - started)
+        raise UNAVAILABLE
+    logger.info("Bilan de Page produit en %.1f s", time.monotonic() - started)
+    return analysis
