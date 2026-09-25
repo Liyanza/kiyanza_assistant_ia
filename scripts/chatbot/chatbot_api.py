@@ -37,6 +37,11 @@ Contrat (voir Liyanza-backend, src/modules/assistant-ia/clients/ia-engine.interf
     Une erreur AVANT le premier morceau (Gemini surchargé, clé invalide...)
     reste un HTTP 503, comme /ask.
 
+    POST /page-health/analyze  (même en-tête)
+    -> bilan d'une Page Facebook (statistiques calculées par le backend) :
+       {summary, strengths[], watchouts[], actions[{title, detail}]}. Voir
+       page_health_analysis.py.
+
     POST /simulation/analyze   (même en-tête)
     -> analyse d'une simulation de campagne digitale calculée par le
        backend : {summary, strengths[], risks[], recommendations[{title,
@@ -77,6 +82,7 @@ from chatbot import (
     prepare_question,
 )
 from rag_retrieve import warm_up as warm_up_rag
+from page_health_analysis import analyze_page_health, load_page_health_prompt
 from simulation_analysis import analyze_simulation, load_simulation_prompt
 from text_to_sql import get_engine, get_table_schema
 
@@ -97,6 +103,7 @@ PUBLIC_MAX_RECENT_MESSAGES = 4
 _system_prompt = None
 _public_system_prompt = None
 _simulation_prompt = None
+_page_health_prompt = None
 
 
 class CompanyProfile(BaseModel):
@@ -174,10 +181,11 @@ async def lifespan(app: FastAPI):
             "caractères (ex: openssl rand -hex 32)."
         )
 
-    global _system_prompt, _public_system_prompt, _simulation_prompt
+    global _system_prompt, _public_system_prompt, _simulation_prompt, _page_health_prompt
     _system_prompt = load_system_prompt()
     _public_system_prompt = load_public_system_prompt()
     _simulation_prompt = load_simulation_prompt()
+    _page_health_prompt = load_page_health_prompt()
 
     # Charge le modèle d'embeddings et la base Chroma dès le démarrage :
     # sinon la première question paie 10 à 20 s de chargement, et une base
@@ -370,4 +378,76 @@ def simulation_analyze(request: SimulationAnalysisRequest):
         )
         raise UNAVAILABLE
     logger.info("Analyse de simulation produite en %.1f s (objectif %s)", time.monotonic() - started, request.objective)
+    return analysis
+
+
+# ---------------------------------------------------------------------------
+# Santé d'une Page Facebook (POST /page-health/analyze)
+# ---------------------------------------------------------------------------
+
+
+class PageHealthKpi(BaseModel):
+    key: str
+    current: float | None = None
+    previous: float | None = None
+    change: float | None = None
+
+
+class PageHealthTopPost(BaseModel):
+    message: str = Field("", max_length=400)
+    createdTime: str
+    reactions: int = 0
+    comments: int = 0
+    shares: int = 0
+
+
+class PageHealthSlot(BaseModel):
+    weekday: int = Field(..., ge=0, le=6)
+    slot: int = Field(..., ge=0, le=7)
+    posts: int
+    avgInteractions: float
+
+
+class PageHealthBestTimes(BaseModel):
+    enough: bool
+    sampleSize: int
+    top: list[PageHealthSlot] = Field(default_factory=list, max_length=5)
+
+
+class PageHealthRequest(BaseModel):
+    """Indicateurs d'une Page Facebook, tels que calculés par le backend."""
+    pageName: str = Field(..., max_length=200)
+    followers: int | None = None
+    periodDays: int = 28
+    kpis: list[PageHealthKpi] = Field(default_factory=list, max_length=5)
+    postsInPeriod: int = 0
+    postsPerWeek: float = 0
+    avgInteractionsPerPost: float | None = None
+    engagementRate: float | None = None
+    topPosts: list[PageHealthTopPost] = Field(default_factory=list, max_length=3)
+    bestTimes: PageHealthBestTimes
+
+
+class PageHealthAction(BaseModel):
+    title: str
+    detail: str
+
+
+class PageHealthAnalysis(BaseModel):
+    summary: str
+    strengths: list[str]
+    watchouts: list[str]
+    actions: list[PageHealthAction]
+
+
+@app.post("/page-health/analyze", response_model=PageHealthAnalysis, dependencies=[Depends(verify_internal_token)])
+def page_health_analyze(request: PageHealthRequest):
+    """Bilan d'une Page Facebook : résumé, points forts, vigilance, 3 actions."""
+    started = time.monotonic()
+    try:
+        analysis = analyze_page_health(request.model_dump(exclude_none=True), _page_health_prompt)
+    except Exception:
+        logger.exception("Échec de /page-health/analyze après %.1f s", time.monotonic() - started)
+        raise UNAVAILABLE
+    logger.info("Bilan de Page produit en %.1f s", time.monotonic() - started)
     return analysis

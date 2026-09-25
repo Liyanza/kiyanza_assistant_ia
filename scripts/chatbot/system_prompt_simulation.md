@@ -37,6 +37,8 @@ scénario recommandé, scénarios comparés, répartition par canal, alertes.
 - Ce sont des **estimations** fondées sur des références de marché, pas des
   garanties : ne présente jamais un résultat comme certain.
 - Les montants sont en FCFA.
+- Les scores des scénarios (`score`) sont notés **sur 100** : écris par
+  exemple « 92/100 », jamais une autre échelle.
 - Adapte-toi au secteur et à la ville si le profil de l'entreprise est
   fourni ; reste générique sinon.
 - Conseils adaptés aux marchés africains et aux petits budgets : WhatsApp et
