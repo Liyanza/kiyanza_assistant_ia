@@ -28,18 +28,30 @@ GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 # Modifiable via la variable d'environnement GEMINI_MODEL si besoin, sans
 # toucher au code. Verifie le nom exact des modeles disponibles sur
 # https://ai.google.dev/gemini-api/docs/models si celui-ci venait a changer.
-GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-flash-latest")
+GEMINI_MODEL = os.environ.get("GEMINI_MODEL") or "gemini-flash-latest"
 
 GEMINI_URL = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent"
 
 
-def ask_llm(system_prompt: str, user_message: str, temperature: float = 0.3) -> str:
+def ask_llm(
+    system_prompt: str,
+    user_message: str,
+    temperature: float = 0.3,
+    api_key: str | None = None,
+    max_output_tokens: int | None = None,
+) -> str:
     """
     Envoie un system prompt + un message utilisateur a l'API Gemini, et
     renvoie le texte de la reponse. Meme signature que l'ancienne version
     Ollama : aucun appelant n'a besoin de changer.
+
+    api_key : cle a utiliser a la place de GEMINI_API_KEY (ex: la cle
+    dediee au mode public, pour que les abus du site public ne puissent
+    pas epuiser le quota des clients connectes).
+    max_output_tokens : plafond de longueur de la reponse.
     """
-    if not GEMINI_API_KEY:
+    api_key = api_key or GEMINI_API_KEY
+    if not api_key:
         raise RuntimeError(
             "GEMINI_API_KEY n'est pas definie. Ajoute-la a ton fichier .env "
             "(cle gratuite sur https://aistudio.google.com/apikey)."
@@ -50,9 +62,11 @@ def ask_llm(system_prompt: str, user_message: str, temperature: float = 0.3) -> 
         "contents": [{"parts": [{"text": user_message}]}],
         "generationConfig": {"temperature": temperature},
     }
+    if max_output_tokens:
+        payload["generationConfig"]["maxOutputTokens"] = max_output_tokens
     headers = {
         "Content-Type": "application/json",
-        "x-goog-api-key": GEMINI_API_KEY,
+        "x-goog-api-key": api_key,
     }
 
     response = requests.post(GEMINI_URL, json=payload, headers=headers, timeout=60)

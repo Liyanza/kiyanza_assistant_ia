@@ -2,42 +2,162 @@
 API FastAPI du chatbot Kiyanza, mode "Poser une question" (cahier des
 charges IA, section 4.1.A).
 
-Un seul endpoint : POST /ask, qui reprend exactement la même logique que
-06_chatbot.py (RAG + Text-to-SQL + appel LLM), réutilisée sans duplication
-via chatbot.py.
+Un seul endpoint métier : POST /ask, qui reprend exactement la même logique
+que 06_chatbot.py (RAG + Text-to-SQL + appel LLM Gemini), réutilisée sans
+duplication via chatbot.py.
 
-Prérequis : Ollama lancé, PostgreSQL lancé (pour le Text-to-SQL), et la
-base vectorielle Chroma déjà construite (étape 3 du pipeline chatbot).
+Ce service n'est appelé QUE par Liyanza-backend (NestJS), jamais directement
+par un navigateur ou l'app mobile : c'est le backend qui authentifie
+l'utilisateur, vérifie son entreprise, puis relaie la question ici avec le
+secret partagé X-Internal-Token. D'où l'absence volontaire de CORS.
+
+Contrat (voir Liyanza-backend, src/modules/assistant-ia/clients/ia-engine.interface.ts) :
+
+    POST /ask
+    X-Internal-Token: <INTERNAL_TOKEN>
+    {
+      "mode": "expert" | "public",        (optionnel, "expert" par défaut)
+      "conversationId": "...",            (optionnel)
+      "userMessage": "...",
+      "context": {                         (optionnel)
+        "topic": "...",
+        "companyProfile": {"name", "businessSector", "address"},
+        "campaign": {"name", "objective", "status", "plannedBudget",
+                     "startDate", "endDate", "channels", "results"},
+        "recentMessages": [{"sender": "USER"|"AI", "content": "..."}]
+      }
+    }
+    -> {"answer": "..."}
+
+Mode "public" : visiteur anonyme du site, relayé par l'endpoint public
+(limité par IP) du backend. Prompt vitrine, aucune donnée (ni RAG sur les
+documents internes, ni SQL), 500 caractères et 4 messages d'historique au
+plus ; topic, companyProfile et campaign sont refusés.
+
+Prérequis : GEMINI_API_KEY et INTERNAL_TOKEN définis, base vectorielle
+Chroma construite (étape 3 du pipeline chatbot). PostgreSQL (Text-to-SQL)
+est facultatif : s'il est injoignable, le chatbot répond sans les données
+chiffrées.
 
 IMPORTANT : à lancer depuis la racine du projet.
 """
 
+import hashlib
+import hmac
+import logging
+import os
 from contextlib import asynccontextmanager
+from typing import Literal
 
-from fastapi import FastAPI, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field
+from fastapi import Depends, FastAPI, Header, HTTPException, status
+from pydantic import BaseModel, Field, model_validator
 
-from chatbot import load_system_prompt, answer_question
+from chatbot import (
+    answer_public_question,
+    answer_question,
+    load_public_system_prompt,
+    load_system_prompt,
+)
+from rag_retrieve import warm_up as warm_up_rag
+
+logger = logging.getLogger("kiyanza.chatbot_api")
+
+# Lu une seule fois au démarrage. Le service refuse de démarrer sans lui :
+# exposé sur Internet sans secret, n'importe qui pourrait consommer le quota
+# Gemini (§6 du canevas d'intégration backend).
+INTERNAL_TOKEN = os.environ.get("INTERNAL_TOKEN", "")
+MIN_TOKEN_LENGTH = 32
+
+PUBLIC_MAX_MESSAGE_LENGTH = 500
+PUBLIC_MAX_RECENT_MESSAGES = 4
 
 _system_prompt = None
+_public_system_prompt = None
+
+
+class CompanyProfile(BaseModel):
+    name: str | None = None
+    businessSector: str | None = None
+    address: str | None = None
+
+
+class CampaignContext(BaseModel):
+    name: str | None = None
+    objective: str | None = None
+    status: str | None = None
+    plannedBudget: float | str | None = None
+    startDate: str | None = None
+    endDate: str | None = None
+    channels: list[str] = Field(default_factory=list, max_length=30)
+    results: dict[str, float | int | str] = Field(default_factory=dict, max_length=30)
+
+
+class RecentMessage(BaseModel):
+    sender: Literal["USER", "AI"]
+    content: str = Field(..., max_length=5000)
+
+
+class AskContext(BaseModel):
+    topic: str | None = None
+    companyProfile: CompanyProfile | None = None
+    campaign: CampaignContext | None = None
+    recentMessages: list[RecentMessage] = Field(default_factory=list, max_length=20)
 
 
 class AskRequest(BaseModel):
-    question: str = Field(..., min_length=1, examples=["Comment toucher plus de clients à Douala avec un petit budget ?"])
+    mode: Literal["expert", "public"] = "expert"
+    conversationId: str | None = None
+    userMessage: str = Field(
+        ...,
+        min_length=1,
+        max_length=5000,
+        examples=["Comment toucher plus de clients à Douala avec un petit budget ?"],
+    )
+    context: AskContext | None = None
+
+    @model_validator(mode="after")
+    def check_public_limits(self) -> "AskRequest":
+        if self.mode != "public":
+            return self
+        if len(self.userMessage) > PUBLIC_MAX_MESSAGE_LENGTH:
+            raise ValueError(f"userMessage limité à {PUBLIC_MAX_MESSAGE_LENGTH} caractères en mode public")
+        ctx = self.context
+        if ctx and (ctx.topic or ctx.companyProfile or ctx.campaign):
+            raise ValueError("topic, companyProfile et campaign sont interdits en mode public")
+        if ctx and len(ctx.recentMessages) > PUBLIC_MAX_RECENT_MESSAGES:
+            raise ValueError(f"{PUBLIC_MAX_RECENT_MESSAGES} messages d'historique au plus en mode public")
+        return self
 
 
 class AskResponse(BaseModel):
     answer: str
 
 
+def verify_internal_token(x_internal_token: str = Header(default="")) -> None:
+    # Comparaison à temps constant sur des empreintes de taille fixe : une
+    # simple égalité `==` fuiterait la longueur du préfixe correct.
+    expected = hashlib.sha256(INTERNAL_TOKEN.encode()).digest()
+    received = hashlib.sha256(x_internal_token.encode()).digest()
+    if not hmac.compare_digest(expected, received):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized")
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Charge le system prompt une seule fois au démarrage, plutôt qu'à
-    # chaque requête (fichier texte, coût négligeable, mais autant garder
-    # la même logique de préchargement que les autres API du projet).
-    global _system_prompt
+    if len(INTERNAL_TOKEN) < MIN_TOKEN_LENGTH:
+        raise RuntimeError(
+            f"INTERNAL_TOKEN doit être défini et faire au moins {MIN_TOKEN_LENGTH} "
+            "caractères (ex: openssl rand -hex 32)."
+        )
+
+    global _system_prompt, _public_system_prompt
     _system_prompt = load_system_prompt()
+    _public_system_prompt = load_public_system_prompt()
+
+    # Charge le modèle d'embeddings et la base Chroma dès le démarrage :
+    # sinon la première question paie 10 à 20 s de chargement, et une base
+    # Chroma absente ne se découvrirait qu'au premier appel.
+    warm_up_rag()
     yield
 
 
@@ -45,15 +165,8 @@ app = FastAPI(
     title="Kiyanza - API du chatbot",
     description="Fonctionnalité 4.1.A du cahier des charges IA : "
                  "'Assistant IA marketing — mode Poser une question'.",
-    version="1.0.0",
+    version="1.1.0",
     lifespan=lifespan,
-)
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
 )
 
 
@@ -62,17 +175,32 @@ def health():
     return {"status": "ok"}
 
 
-@app.post("/ask", response_model=AskResponse)
+@app.post("/ask", response_model=AskResponse, dependencies=[Depends(verify_internal_token)])
 def ask(request: AskRequest):
     """Pose une question au chatbot marketing de Kiyanza."""
+    context = request.context or AskContext()
+    recent_messages = [m.model_dump() for m in context.recentMessages]
     try:
-        answer = answer_question(request.question, _system_prompt)
-    except Exception as e:
-        # Couvre Ollama indisponible, PostgreSQL injoignable (Text-to-SQL),
-        # ou la base Chroma introuvable/corrompue (RAG) — §6.3 : informer
-        # plutôt qu'échouer silencieusement.
+        if request.mode == "public":
+            answer = answer_public_question(request.userMessage, _public_system_prompt, recent_messages)
+        else:
+            answer = answer_question(
+                request.userMessage,
+                _system_prompt,
+                topic=context.topic,
+                company_profile=context.companyProfile.model_dump(exclude_none=True)
+                if context.companyProfile
+                else None,
+                recent_messages=recent_messages,
+                campaign=context.campaign.model_dump(exclude_none=True) if context.campaign else None,
+            )
+    except Exception:
+        # Le détail (clé API invalide, quota Gemini, Chroma corrompue...)
+        # reste dans les logs du serveur : le renvoyer au client exposerait
+        # des informations internes (§6.3 : informer sans divulguer).
+        logger.exception("Échec du traitement de /ask (mode %s, conversation %s)", request.mode, request.conversationId)
         raise HTTPException(
-            status_code=503,
-            detail=f"Le chatbot est temporairement indisponible : {e}",
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Le chatbot est temporairement indisponible.",
         )
     return {"answer": answer}

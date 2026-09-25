@@ -62,6 +62,16 @@ def _get_collection():
     return _collection
 
 
+def warm_up() -> None:
+    """
+    Charge le modele et la collection immediatement (appele au demarrage de
+    l'API) : echoue tout de suite si la base Chroma est absente, plutot qu'a
+    la premiere question d'un utilisateur.
+    """
+    _get_model()
+    _get_collection()
+
+
 def retrieve_relevant_chunks(question: str, top_k: int = TOP_K) -> list[dict]:
     """
     Renvoie une liste de chunks pertinents pour la question, chacun sous la
