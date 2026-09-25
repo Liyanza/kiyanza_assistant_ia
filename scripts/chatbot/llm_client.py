@@ -126,3 +126,29 @@ def ask_llm_stream(
             text = _candidate_text(json.loads(line[len("data:"):].strip()))
             if text:
                 yield text
+
+
+def ask_llm_json(
+    system_prompt: str,
+    user_message: str,
+    response_schema: dict,
+    temperature: float = 0.3,
+    api_key: str | None = None,
+) -> dict:
+    """
+    Meme appel qu'ask_llm, mais Gemini doit repondre un objet JSON conforme a
+    `response_schema` (sortie structuree : responseMimeType + responseSchema,
+    format OpenAPI simplifie de Gemini). Renvoie l'objet deja decode.
+    """
+    payload, headers = _build_request(system_prompt, user_message, temperature, api_key, None)
+    payload["generationConfig"]["responseMimeType"] = "application/json"
+    payload["generationConfig"]["responseSchema"] = response_schema
+
+    response = requests.post(GEMINI_URL, json=payload, headers=headers, timeout=60)
+    response.raise_for_status()
+    data = response.json()
+
+    text = _candidate_text(data)
+    if not text:
+        raise RuntimeError(f"Reponse Gemini inattendue (pas de texte trouve) : {data}")
+    return json.loads(text)
