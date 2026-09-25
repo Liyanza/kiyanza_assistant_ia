@@ -60,6 +60,7 @@ import hmac
 import json
 import logging
 import os
+import time
 from collections.abc import Iterator
 from contextlib import asynccontextmanager
 from typing import Literal
@@ -79,6 +80,9 @@ from rag_retrieve import warm_up as warm_up_rag
 from simulation_analysis import analyze_simulation, load_simulation_prompt
 from text_to_sql import get_engine, get_table_schema
 
+# Sans configuration, Python n'affiche que les WARNING et plus : on veut aussi
+# les INFO (durée des analyses) dans `docker compose logs`.
+logging.basicConfig(level=logging.INFO, format="%(levelname)s:     %(name)s - %(message)s")
 logger = logging.getLogger("kiyanza.chatbot_api")
 
 # Lu une seule fois au démarrage. Le service refuse de démarrer sans lui :
@@ -357,8 +361,13 @@ class SimulationAnalysis(BaseModel):
 @app.post("/simulation/analyze", response_model=SimulationAnalysis, dependencies=[Depends(verify_internal_token)])
 def simulation_analyze(request: SimulationAnalysisRequest):
     """Explique une simulation : résumé, points forts, risques, recommandations."""
+    started = time.monotonic()
     try:
-        return analyze_simulation(request.model_dump(exclude_none=True), _simulation_prompt)
+        analysis = analyze_simulation(request.model_dump(exclude_none=True), _simulation_prompt)
     except Exception:
-        logger.exception("Échec de /simulation/analyze (objectif %s)", request.objective)
+        logger.exception(
+            "Échec de /simulation/analyze (objectif %s) après %.1f s", request.objective, time.monotonic() - started
+        )
         raise UNAVAILABLE
+    logger.info("Analyse de simulation produite en %.1f s (objectif %s)", time.monotonic() - started, request.objective)
+    return analysis
