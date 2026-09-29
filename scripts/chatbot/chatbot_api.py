@@ -41,6 +41,11 @@ Contrat (voir Liyanza-backend, src/modules/assistant-ia/clients/ia-engine.interf
     -> {description} : 2 à 3 phrases de description d'une campagne, à
        partir de son nom et de ce qu'elle promeut (assistant de création).
 
+    POST /campaign/recommendations (même en-tête)
+    -> {recommendations[{title, detail, priority, category}]} : 3 à 5
+       conseils pour une campagne, à partir de tout ce que le backend sait
+       d'elle. Voir campaign_recommendations.py.
+
     POST /page-health/analyze  (même en-tête)
     -> bilan d'une Page Facebook (statistiques calculées par le backend) :
        {summary, strengths[], watchouts[], actions[{title, detail}]}. Voir
@@ -87,6 +92,7 @@ from chatbot import (
 )
 from rag_retrieve import warm_up as warm_up_rag
 from llm_client import ask_llm
+from campaign_recommendations import load_recommendations_prompt, recommend_for_campaign
 from page_health_analysis import analyze_page_health, load_page_health_prompt
 from simulation_analysis import analyze_simulation, load_simulation_prompt
 from text_to_sql import get_engine, get_table_schema
@@ -109,6 +115,7 @@ _system_prompt = None
 _public_system_prompt = None
 _simulation_prompt = None
 _page_health_prompt = None
+_recommendations_prompt = None
 
 
 class CompanyProfile(BaseModel):
@@ -186,11 +193,12 @@ async def lifespan(app: FastAPI):
             "caractères (ex: openssl rand -hex 32)."
         )
 
-    global _system_prompt, _public_system_prompt, _simulation_prompt, _page_health_prompt
+    global _system_prompt, _public_system_prompt, _simulation_prompt, _page_health_prompt, _recommendations_prompt
     _system_prompt = load_system_prompt()
     _public_system_prompt = load_public_system_prompt()
     _simulation_prompt = load_simulation_prompt()
     _page_health_prompt = load_page_health_prompt()
+    _recommendations_prompt = load_recommendations_prompt()
 
     # Charge le modèle d'embeddings et la base Chroma dès le démarrage :
     # sinon la première question paie 10 à 20 s de chargement, et une base
@@ -507,3 +515,119 @@ def campaign_description(request: CampaignDescriptionRequest):
         raise UNAVAILABLE
     logger.info("Description de campagne rédigée en %.1f s", time.monotonic() - started)
     return {"description": description}
+
+
+# ---------------------------------------------------------------------------
+# Recommandations d'une campagne (POST /campaign/recommendations)
+# ---------------------------------------------------------------------------
+
+
+class RecoCampaign(BaseModel):
+    name: str = Field(..., min_length=1, max_length=200)
+    type: str = Field(..., max_length=20)
+    objective: str = Field("", max_length=300)
+    status: str = Field("", max_length=20)
+    plannedBudget: float = 0
+    actualBudget: float | None = None
+    startDate: str = Field(..., max_length=10)
+    endDate: str = Field(..., max_length=10)
+
+
+class RecoDigital(BaseModel):
+    objective: str = Field(..., max_length=20)
+    customObjective: str | None = Field(None, max_length=300)
+    ageMin: int | None = None
+    ageMax: int | None = None
+    gender: str | None = Field(None, max_length=10)
+    locations: list[str] = Field(default_factory=list, max_length=20)
+    interests: list[str] = Field(default_factory=list, max_length=30)
+    budgetAllocation: str | None = Field(None, max_length=10)
+    channels: list[str] = Field(default_factory=list, max_length=5)
+    linkedToFacebookAds: bool = False
+
+
+class RecoSimulation(BaseModel):
+    simulatedAt: str = Field(..., max_length=30)
+    predictedReach: float | None = None
+    predictedCtr: float | None = None
+    predictedEngagementRate: float | None = None
+    avgCpc: float | None = None
+    costPerAcquisition: float | None = None
+    conversionRate: float | None = None
+    recommendedStrategy: str | None = Field(None, max_length=20)
+    warnings: list[str] = Field(default_factory=list, max_length=10)
+    aiSummary: str | None = Field(None, max_length=2000)
+
+
+class RecoActual(BaseModel):
+    spendXaf: float
+    impressions: int
+    reach: int
+    clicks: int
+    conversions: int
+    collectedAt: str = Field(..., max_length=30)
+
+
+class RecoAlert(BaseModel):
+    type: str = Field(..., max_length=40)
+    severity: str = Field(..., max_length=20)
+    data: dict = Field(default_factory=dict)
+
+
+class RecoRadio(BaseModel):
+    planned: int = 0
+    broadcasted: int = 0
+    missed: int = 0
+    cancelled: int = 0
+    upcoming: int = 0
+
+
+class RecoField(BaseModel):
+    installations: int = 0
+    byStatus: dict[str, int] = Field(default_factory=dict)
+    proofsValidated: int = 0
+    proofsPending: int = 0
+    proofsRejected: int = 0
+
+
+class CampaignRecommendationsRequest(BaseModel):
+    today: str = Field(..., max_length=10)
+    campaign: RecoCampaign
+    company: DescriptionCompany | None = None
+    digital: RecoDigital | None = None
+    simulation: RecoSimulation | None = None
+    actual: RecoActual | None = None
+    alerts: list[RecoAlert] = Field(default_factory=list, max_length=10)
+    radio: RecoRadio | None = None
+    field: RecoField | None = None
+    statistics: dict[str, float] = Field(default_factory=dict)
+    previousRecommendations: list[str] = Field(default_factory=list, max_length=10)
+
+
+class CampaignRecommendation(BaseModel):
+    title: str
+    detail: str
+    priority: Literal["high", "medium", "low"]
+    category: str
+
+
+class CampaignRecommendationsResponse(BaseModel):
+    recommendations: list[CampaignRecommendation]
+
+
+@app.post("/campaign/recommendations", response_model=CampaignRecommendationsResponse, dependencies=[Depends(verify_internal_token)])
+def campaign_recommendations(request: CampaignRecommendationsRequest):
+    """3 à 5 recommandations concrètes pour une campagne (page Recommandations du dashboard)."""
+    started = time.monotonic()
+    if len(request.statistics) > 50:
+        raise HTTPException(status_code=422, detail="Trop d'indicateurs (50 au plus).")
+    try:
+        result = recommend_for_campaign(request.model_dump(exclude_none=True), _recommendations_prompt)
+    except Exception:
+        logger.exception("Échec de /campaign/recommendations après %.1f s", time.monotonic() - started)
+        raise UNAVAILABLE
+    logger.info(
+        "%d recommandations de campagne produites en %.1f s",
+        len(result["recommendations"]), time.monotonic() - started,
+    )
+    return result
