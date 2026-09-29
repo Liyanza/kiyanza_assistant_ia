@@ -37,6 +37,10 @@ Contrat (voir Liyanza-backend, src/modules/assistant-ia/clients/ia-engine.interf
     Une erreur AVANT le premier morceau (Gemini surchargé, clé invalide...)
     reste un HTTP 503, comme /ask.
 
+    POST /campaign/description (même en-tête)
+    -> {description} : 2 à 3 phrases de description d'une campagne, à
+       partir de son nom et de ce qu'elle promeut (assistant de création).
+
     POST /page-health/analyze  (même en-tête)
     -> bilan d'une Page Facebook (statistiques calculées par le backend) :
        {summary, strengths[], watchouts[], actions[{title, detail}]}. Voir
@@ -82,6 +86,7 @@ from chatbot import (
     prepare_question,
 )
 from rag_retrieve import warm_up as warm_up_rag
+from llm_client import ask_llm
 from page_health_analysis import analyze_page_health, load_page_health_prompt
 from simulation_analysis import analyze_simulation, load_simulation_prompt
 from text_to_sql import get_engine, get_table_schema
@@ -451,3 +456,54 @@ def page_health_analyze(request: PageHealthRequest):
         raise UNAVAILABLE
     logger.info("Bilan de Page produit en %.1f s", time.monotonic() - started)
     return analysis
+
+
+# ---------------------------------------------------------------------------
+# Description d'une campagne (POST /campaign/description)
+# ---------------------------------------------------------------------------
+
+DESCRIPTION_PROMPT = """Tu es le rédacteur marketing de KIYANZA. Un entrepreneur (le plus souvent
+au Cameroun) crée une campagne publicitaire et te donne son nom et ce qu'elle
+promeut. Rédige la description interne de la campagne : 2 à 3 phrases
+claires qui disent ce qui est promu, pour qui, et le message clé à faire
+passer. Français simple, ton professionnel et chaleureux. Pas de titre, pas
+de liste, pas d'emoji, pas de guillemets autour du texte. N'invente ni prix,
+ni promotion, ni chiffre, ni coordonnée qui ne seraient pas fournis."""
+
+
+class DescriptionCompany(BaseModel):
+    name: str = Field("", max_length=200)
+    businessSector: str = Field("", max_length=200)
+    address: str = Field("", max_length=300)
+
+
+class CampaignDescriptionRequest(BaseModel):
+    name: str = Field(..., min_length=1, max_length=200)
+    product: str = Field(..., min_length=1, max_length=300)
+    objective: str | None = Field(None, max_length=40)
+    companyProfile: DescriptionCompany | None = None
+
+
+class CampaignDescriptionResponse(BaseModel):
+    description: str
+
+
+@app.post("/campaign/description", response_model=CampaignDescriptionResponse, dependencies=[Depends(verify_internal_token)])
+def campaign_description(request: CampaignDescriptionRequest):
+    """Rédige la description d'une campagne (assistant de création du dashboard)."""
+    started = time.monotonic()
+    lines = [f"Nom de la campagne : {request.name}", f"Ce qu'elle promeut : {request.product}"]
+    if request.objective:
+        lines.append(f"Objectif (type d'optimisation) : {request.objective}")
+    if request.companyProfile:
+        c = request.companyProfile
+        lines.append(f"Entreprise : {c.name} — secteur {c.businessSector} — {c.address}")
+    try:
+        description = ask_llm(DESCRIPTION_PROMPT, "\n".join(lines), temperature=0.6, max_output_tokens=300).strip()
+    except Exception:
+        logger.exception("Échec de /campaign/description après %.1f s", time.monotonic() - started)
+        raise UNAVAILABLE
+    if not description:
+        raise UNAVAILABLE
+    logger.info("Description de campagne rédigée en %.1f s", time.monotonic() - started)
+    return {"description": description}
