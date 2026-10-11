@@ -194,6 +194,12 @@ Le fichier `render.yaml` (Blueprint) décrit l'ensemble du déploiement cloud : 
 |---|---|---|
 | POST | `/ask` | Pose une question au chatbot marketing |
 
+Appelé uniquement par Liyanza-backend, avec le header `X-Internal-Token`
+(= variable `INTERNAL_TOKEN`, 32 caractères minimum). Corps :
+`{"userMessage": "...", "conversationId": "...", "context": {"topic", "companyProfile", "recentMessages"}}`
+(seul `userMessage` est obligatoire) → `{"answer": "..."}`.
+Déploiement AWS : [deploy/aws/README.md](deploy/aws/README.md).
+
 ### Simulation — `:8001`
 
 | Méthode | Endpoint | Description |

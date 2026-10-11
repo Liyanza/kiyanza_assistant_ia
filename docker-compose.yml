@@ -29,10 +29,10 @@ services:
       - DB_NAME=${DB_NAME}
       - DB_USER=${DB_USER}
       - DB_PASSWORD=${DB_PASSWORD}
-    volumes:
-      # Base vectorielle Chroma déjà construite en local (étape 3 du
-      # pipeline chatbot) — jamais reconstruite dans l'image elle-même.
-      - ./output/chroma_db:/app/output/chroma_db:ro
+      # Secret partagé avec Liyanza-backend (header X-Internal-Token).
+      - INTERNAL_TOKEN=${INTERNAL_TOKEN}
+    # La base vectorielle Chroma est construite dans l'image (voir
+    # Dockerfile.chatbot) : aucun volume à monter.
     extra_hosts:
       - "host.docker.internal:host-gateway"
 

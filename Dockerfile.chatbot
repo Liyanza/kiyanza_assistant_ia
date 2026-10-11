@@ -1,34 +1,50 @@
 # Image de l'API chatbot Kiyanza (fonctionnalité 4.1.A "Poser une question").
 #
-# PostgreSQL reste hors du conteneur. La base vectorielle Chroma
-# (output/chroma_db) est ici COPIÉE dans l'image (et non montée en volume) :
-# c'est le choix le plus simple pour un premier déploiement sur Render, qui
-# n'a pas d'équivalent gratuit à un volume Docker local. Contrepartie : toute
-# mise à jour de la base de connaissances nécessite de reconstruire l'image
-# (un simple git push suffit si le déploiement est connecté au dépôt).
+# L'image est autonome : elle se construit depuis un simple `git clone`,
+# sans rien préparer en local.
+#   - Le modèle d'embeddings est téléchargé pendant le build : rag_retrieve.py
+#     force le mode hors-ligne de Hugging Face (HF_HUB_OFFLINE=1), il doit
+#     donc déjà être présent dans l'image au démarrage.
+#   - La base vectorielle Chroma (output/chroma_db, non versionnée) est
+#     construite pendant le build à partir de output/text_chunks.json. Toute
+#     mise à jour de la base de connaissances = re-générer text_chunks.json
+#     (étape 1) puis reconstruire l'image.
+#
+# PostgreSQL (Text-to-SQL) reste hors du conteneur, et reste facultatif :
+# sans lui, le chatbot répond sans les données chiffrées de campagnes.
 
 FROM python:3.11-slim
 
 WORKDIR /app
 
+ENV PIP_NO_CACHE_DIR=1 \
+    PYTHONUNBUFFERED=1 \
+    HF_HOME=/app/.hf \
+    ANONYMIZED_TELEMETRY=False \
+    API_RELOAD=false
+
 RUN apt-get update \
     && apt-get install -y --no-install-recommends build-essential \
     && rm -rf /var/lib/apt/lists/*
 
+# PyTorch en version CPU uniquement : sentence-transformers tirerait sinon la
+# version CUDA (~2 Go de plus), inutile sur un serveur sans GPU.
+RUN pip install torch --index-url https://download.pytorch.org/whl/cpu
+
 COPY requirements-chatbot.txt .
-RUN pip install --no-cache-dir -r requirements-chatbot.txt
+RUN pip install -r requirements-chatbot.txt
+
+RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('paraphrase-multilingual-mpnet-base-v2')"
 
 COPY run_chatbot_api.py .
-COPY scripts/chatbot/chatbot.py ./scripts/chatbot/chatbot.py
-COPY scripts/chatbot/chatbot_api.py ./scripts/chatbot/chatbot_api.py
-COPY scripts/chatbot/rag_retrieve.py ./scripts/chatbot/rag_retrieve.py
-COPY scripts/chatbot/text_to_sql.py ./scripts/chatbot/text_to_sql.py
-COPY scripts/chatbot/llm_client.py ./scripts/chatbot/llm_client.py
-COPY scripts/chatbot/system_prompt.md ./scripts/chatbot/system_prompt.md
-COPY output/chroma_db/ ./output/chroma_db/
+COPY scripts/chatbot/ ./scripts/chatbot/
+COPY output/text_chunks.json ./output/text_chunks.json
+
+RUN python scripts/chatbot/03_generate_embeddings.py
 
 EXPOSE 8000
 
-ENV API_RELOAD=false
+HEALTHCHECK --interval=30s --timeout=5s --start-period=120s --retries=3 \
+    CMD python -c "import os, urllib.request; urllib.request.urlopen(f'http://127.0.0.1:{os.environ.get(\"PORT\", 8000)}/health', timeout=4)"
 
 CMD ["python", "run_chatbot_api.py"]

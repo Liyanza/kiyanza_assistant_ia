@@ -42,9 +42,18 @@ Regles strictes :
 """
 
 
+_engine = None
+
+
 def get_engine():
-    url = f"postgresql+psycopg2://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
-    return create_engine(url)
+    # Un seul engine (et donc un seul pool de connexions) pour toute la vie
+    # du process : en recreer un a chaque question ouvrait un nouveau pool a
+    # chaque appel de l'API.
+    global _engine
+    if _engine is None:
+        url = f"postgresql+psycopg2://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+        _engine = create_engine(url, pool_pre_ping=True, connect_args={"connect_timeout": 5})
+    return _engine
 
 
 def get_table_schema(engine) -> str:
