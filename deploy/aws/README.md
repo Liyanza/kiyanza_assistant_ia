@@ -174,11 +174,28 @@ compte ADMIN ou MARKETING_MANAGER, ouvre le widget de chat et pose une
 question. La réponse doit être du vrai texte, plus « Mock response ». (Le
 Swagger du backend n'est exposé qu'hors production, sur `/docs`.)
 
+## Déploiement automatique
+
+Chaque push sur `master` déclenche le workflow [**Deploy (AWS)**](../../.github/workflows/deploy.yml), sans SSH ni clé stockée dans GitHub.
+
+1. **Check** compile les sources Python : une erreur de syntaxe ne part pas en production.
+2. GitHub obtient des identifiants AWS temporaires par OIDC, avec le rôle `github-deploy-chatbot` du compte `168692730521`. Ce rôle n'accepte que ce dépôt et la branche `master`. Il peut seulement déposer le bundle et lancer Session Manager sur cette instance.
+3. Le code part en bundle git dans `s3://kiyanza-chatbot-deploy-168692730521/deploy/` (supprimé après 7 jours). Le serveur le télécharge par une URL présignée valable 15 minutes : il n'a aucun accès à GitHub ni à S3.
+4. Par Session Manager, le serveur place `master` sur ce commit, puis lance [`deploy.sh`](deploy.sh). Le script reconstruit la stack et attend que l'API soit « healthy » ; en cas d'échec, il affiche les derniers journaux et le workflow échoue.
+5. Le workflow vérifie enfin `https://ia.kiyanza.com/health`.
+
+L'instance a le rôle `kiyanza-chatbot-ec2` (Session Manager). Pour ouvrir un terminal sans SSH, avec le profil CLI de ce compte :
+
+```sh
+aws ssm start-session --target i-0f0f5f2379d6dc3c6 --profile kiyanza-ia
+sudo -iu ubuntu && cd kiyanza_assistant_ia
+```
+
 ## Exploitation
 
 | Besoin | Commande (dans `~/kiyanza_assistant_ia`) |
 |---|---|
-| Déployer une nouvelle version | `git pull && docker compose -f docker-compose.aws.yml up -d --build` |
+| Déployer une nouvelle version | Automatique à chaque push sur `master`. À la main : `sh deploy/aws/deploy.sh` (en root, après mise à jour du code) |
 | Voir les erreurs | `docker compose -f docker-compose.aws.yml logs --tail 100 chatbot-api` |
 | Redémarrer | `docker compose -f docker-compose.aws.yml restart chatbot-api` |
 | Changer le token | modifier `.env`, puis `docker compose -f docker-compose.aws.yml up -d` (et mettre à jour Render) |
