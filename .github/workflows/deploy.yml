@@ -1,0 +1,93 @@
+name: Deploy (AWS)
+
+# Chaque push sur master déploie le chatbot sur l'instance EC2
+# kiyanza-chatbot (compte 168692730521, Paris). Détails :
+# deploy/aws/README.md, section « Déploiement automatique ».
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+# Jamais deux déploiements en même temps ; un nouveau push attend le précédent.
+concurrency:
+  group: deploy-aws
+  cancel-in-progress: false
+
+env:
+  AWS_REGION: eu-west-3
+  INSTANCE_ID: i-0f0f5f2379d6dc3c6
+  BUCKET: kiyanza-chatbot-deploy-168692730521
+  APP_DIR: /home/ubuntu/kiyanza_assistant_ia
+
+jobs:
+  check:
+    name: Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      # Garde-fou minimal : une erreur de syntaxe Python ne part pas en production.
+      - name: Compile Python sources
+        run: python -m compileall -q run_chatbot_api.py scripts
+
+  deploy:
+    name: Deploy (AWS)
+    needs: check
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Identifiants AWS temporaires par OIDC : aucune clé stockée dans GitHub.
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::168692730521:role/github-deploy-chatbot
+          aws-region: ${{ env.AWS_REGION }}
+
+      # Le serveur n'a aucun accès à GitHub : il reçoit le code sous forme de
+      # bundle git, téléchargé par une URL S3 présignée (valable 15 minutes).
+      - name: Upload code bundle
+        id: bundle
+        run: |
+          git branch -f deploy HEAD
+          git bundle create chatbot.bundle refs/heads/deploy
+          aws s3 cp chatbot.bundle "s3://$BUCKET/deploy/chatbot.bundle" --only-show-errors
+          echo "url=$(aws s3 presign "s3://$BUCKET/deploy/chatbot.bundle" --expires-in 900)" >> "$GITHUB_OUTPUT"
+
+      - name: Deploy on the server
+        env:
+          BUNDLE_URL: ${{ steps.bundle.outputs.url }}
+        run: |
+          params=$(jq -n --arg url "$BUNDLE_URL" --arg dir "$APP_DIR" '{commands: [
+            "set -eu",
+            "curl -fsS -o /tmp/chatbot.bundle \"" + $url + "\"",
+            "cd " + $dir,
+            "sudo -u ubuntu git fetch -q /tmp/chatbot.bundle deploy",
+            "sudo -u ubuntu git checkout -q -f -B master FETCH_HEAD",
+            "rm -f /tmp/chatbot.bundle",
+            "sh deploy/aws/deploy.sh"
+          ]}')
+          id=$(aws ssm send-command --instance-ids "$INSTANCE_ID" --document-name AWS-RunShellScript \
+            --timeout-seconds 900 --parameters "$params" --query Command.CommandId --output text)
+          echo "Command $id"
+          status=Pending
+          for _ in $(seq 1 90); do
+            sleep 10
+            status=$(aws ssm get-command-invocation --command-id "$id" --instance-id "$INSTANCE_ID" \
+              --query Status --output text 2>/dev/null || echo Pending)
+            case "$status" in Pending|InProgress|Delayed) ;; *) break ;; esac
+          done
+          aws ssm get-command-invocation --command-id "$id" --instance-id "$INSTANCE_ID" \
+            --query '[StandardOutputContent,StandardErrorContent]' --output text || true
+          [ "$status" = Success ] || { echo "Déploiement en échec : $status"; exit 1; }
+
+      - name: Check https://ia.kiyanza.com/health
+        run: curl -fsS --retry 5 --retry-delay 5 --retry-all-errors https://ia.kiyanza.com/health
